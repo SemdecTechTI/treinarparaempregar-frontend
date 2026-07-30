@@ -5,10 +5,13 @@
       <AdminCourseAdminForm
         :form="form"
         :partners="partners"
+        :tracks="tracks"
         :document-types="documentTypes"
         v-model:selected-docs="selectedDocs"
         v-model:pending-custom-fields="pendingCustomFields"
         :show-enrollment="true"
+        :course-options="courseOptions"
+        @partner-created="onPartnerCreated"
       />
 
       <div class="flex flex-wrap gap-3">
@@ -24,9 +27,11 @@
 <script setup lang="ts">
 import type { CourseCustomFieldDraft } from '~/types/custom-field'
 
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'courses' })
 
 const partners = ref<any[]>([])
+const tracks = ref<Array<{ id: number; name: string; slug: string }>>([])
+const allCourses = ref<any[]>([])
 const documentTypes = ref<Record<string, string>>({})
 const selectedDocs = ref<string[]>([])
 const pendingCustomFields = ref<CourseCustomFieldDraft[]>([])
@@ -34,36 +39,59 @@ const saving = ref(false)
 const message = ref('')
 const error = ref('')
 
+const courseOptions = computed(() =>
+  allCourses.value.map((c: any) => ({ id: c.id, title: c.title, internal_title: c.internal_title })),
+)
+
+function onPartnerCreated(partner: { id: number; name: string }) {
+  if (!partners.value.some(p => p.id === partner.id)) {
+    partners.value = [...partners.value, partner].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+  }
+  form.partner_id = String(partner.id)
+}
+
 const form = reactive({
   partner_id: '',
-  titulo: '',
-  resumo: '',
-  descricao: '',
-  trilha: 'base',
-  carga_horaria: '',
-  link_inscricao: '',
-  modalidade: 'presencial',
-  imagem: '',
-  ordem: 0,
-  vagas_totais: 0,
-  ocultar_vagas_totais: false,
-  ocultar_vagas_disponiveis: true,
-  data_curso: '',
-  local: '',
-  ativo: true,
-  inscricao_inicio: '',
-  inscricao_fim: '',
-  inscricao_encerrada: false,
-  permite_inscricao_simultanea: false,
-  exige_documentos: false,
+  title: '',
+  internal_title: '',
+  summary: '',
+  description: '',
+  track: 'base',
+  workload: '',
+  enrollment_link: '',
+  modality: 'presencial',
+  image: '',
+  sort_order: 0,
+  total_vacancies: 0,
+  reserve_vacancies: 0,
+  hide_total_vacancies: false,
+  hide_available_vacancies: true,
+  course_start_date: '',
+  course_end_date: '',
+  location: '',
+  listed: true,
+  women_only: false,
+  adults_only: false,
+  enrollment_start: '',
+  enrollment_end: '',
+  enrollment_closed: false,
+  allow_simultaneous_enrollment: false,
+  requires_documents: false,
+  keep_export_link: true,
+  link_course_id: '',
 })
 
 onMounted(async () => {
   try {
     const list = await useApi<any>('/admin/courses')
     documentTypes.value = list.document_types || {}
+    allCourses.value = list.courses || []
     partners.value = await useApi<any[]>('/admin/partners')
+    tracks.value = await useApi('/admin/tracks')
     if (partners.value.length) form.partner_id = String(partners.value[0].id)
+    if (tracks.value.length && !tracks.value.some(t => t.slug === form.track)) {
+      form.track = tracks.value[0].slug
+    }
   } catch (e: any) {
     error.value = e?.data?.message || 'Erro ao carregar dados do formulário.'
   }
@@ -74,7 +102,7 @@ async function save() {
   message.value = ''
   error.value = ''
   try {
-    const documentos_necessarios = selectedDocs.value.map(key => ({
+    const required_documents = selectedDocs.value.map(key => ({
       key,
       label: documentTypes.value[key],
       required: true,
@@ -82,12 +110,16 @@ async function save() {
     const body: Record<string, unknown> = {
       ...form,
       partner_id: Number(form.partner_id),
-      ordem: Number(form.ordem) || 0,
-      vagas_totais: Number(form.vagas_totais) || 0,
-      data_curso: form.data_curso || null,
-      inscricao_inicio: form.inscricao_inicio || null,
-      inscricao_fim: form.inscricao_fim || null,
-      documentos_necessarios: form.exige_documentos ? documentos_necessarios : [],
+      sort_order: Number(form.sort_order) || 0,
+      total_vacancies: Number(form.total_vacancies) || 0,
+      reserve_vacancies: Number(form.reserve_vacancies) || 0,
+      course_start_date: form.course_start_date || null,
+      course_end_date: form.course_end_date || null,
+      enrollment_start: form.enrollment_start || null,
+      enrollment_end: form.enrollment_end || null,
+      internal_title: form.internal_title || null,
+      required_documents: form.requires_documents ? required_documents : [],
+      link_course_id: form.link_course_id ? Number(form.link_course_id) : null,
     }
     const created = await useApi<any>('/admin/courses', { method: 'POST', body })
     for (const f of pendingCustomFields.value) {
@@ -97,7 +129,7 @@ async function save() {
           course_id: created.id,
           label: f.label,
           type: f.type,
-          ordem: f.ordem ?? 0,
+          sort_order: f.sort_order ?? 0,
           required: f.required ?? false,
           options: f.options,
         },

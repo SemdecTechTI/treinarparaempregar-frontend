@@ -1,15 +1,15 @@
 export function useProgress() {
   let throttleTimer: ReturnType<typeof setTimeout> | null = null
 
-  async function saveAcervoProgress(acervoVideoId: number, currentTime: number, duration: number, immediate = false) {
+  async function saveCourseVideoProgress(courseVideoId: number, currentTime: number, duration: number, immediate = false) {
     const send = async () => {
       try {
-        await useApi('/acervo-progress', {
+        await useApi('/course-video-progress', {
           method: 'POST',
-          body: { acervo_video_id: acervoVideoId, current_time: currentTime, duration },
+          body: { course_video_id: courseVideoId, current_time: currentTime, duration },
         })
       } catch (e) {
-        console.error('Erro ao salvar progresso do acervo', e)
+        console.error('Erro ao salvar progresso do vídeo', e)
       }
     }
 
@@ -25,9 +25,9 @@ export function useProgress() {
     }, 8000)
   }
 
-  async function getAcervoProgress(acervoVideoId: number) {
+  async function getCourseVideoProgress(courseVideoId: number) {
     try {
-      const data = await useApi<{ progress: { watched_seconds: number } | null }>(`/acervo-progress/${acervoVideoId}`)
+      const data = await useApi<{ progress: { watched_seconds: number } | null }>(`/course-video-progress/${courseVideoId}`)
       return data.progress?.watched_seconds ?? 0
     } catch {
       return 0
@@ -35,29 +35,29 @@ export function useProgress() {
   }
 
   function saveProgress(
-    acervoVideoId: number,
+    courseVideoId: number,
     currentTime: number,
     duration: number,
     immediate = false,
-    type: 'acervo_video' = 'acervo_video',
+    type: 'course_video' = 'course_video',
   ) {
-    if (type === 'acervo_video') {
-      return saveAcervoProgress(acervoVideoId, currentTime, duration, immediate)
+    if (type === 'course_video') {
+      return saveCourseVideoProgress(courseVideoId, currentTime, duration, immediate)
     }
-    return saveAcervoProgress(acervoVideoId, currentTime, duration, immediate)
+    return saveCourseVideoProgress(courseVideoId, currentTime, duration, immediate)
   }
 
-  async function getProgress(acervoVideoId: number, type: 'acervo_video' = 'acervo_video') {
-    if (type === 'acervo_video') {
-      return getAcervoProgress(acervoVideoId)
+  async function getProgress(courseVideoId: number, type: 'course_video' = 'course_video') {
+    if (type === 'course_video') {
+      return getCourseVideoProgress(courseVideoId)
     }
-    return getAcervoProgress(acervoVideoId)
+    return getCourseVideoProgress(courseVideoId)
   }
 
   return {
     saveProgress,
     getProgress,
-    saveAcervoProgress,
-    getAcervoProgress,
+    saveCourseVideoProgress,
+    getCourseVideoProgress,
   }
 }

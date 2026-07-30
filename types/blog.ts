@@ -1,6 +1,6 @@
 export interface BlogPostListItem {
   id: number
-  titulo: string
+  title: string
   slug: string
   excerpt?: string | null
   cover_image?: string | null

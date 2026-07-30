@@ -26,7 +26,7 @@
         </div>
         <div>
           <label class="form-label">Ordem</label>
-          <input v-model.number="draft.ordem" type="number" min="0" class="input-modern" />
+          <input v-model.number="draft.sort_order" type="number" min="0" class="input-modern" />
         </div>
       </div>
       <div v-if="draft.type === 'select'">
@@ -69,7 +69,7 @@
             <td class="px-4 py-2">{{ f.label }}</td>
             <td class="px-4 py-2">{{ typeLabel(f.type) }}</td>
             <td class="px-4 py-2">{{ f.required ? 'Sim' : 'Não' }}</td>
-            <td class="px-4 py-2">{{ f.ordem ?? 0 }}</td>
+            <td class="px-4 py-2">{{ f.sort_order ?? 0 }}</td>
             <td class="px-4 py-2">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(f) },
@@ -104,7 +104,7 @@ const formError = ref('')
 const draft = reactive({
   label: '',
   type: 'text',
-  ordem: 0,
+  sort_order: 0,
   required: false,
   optionsText: '',
 })
@@ -123,7 +123,7 @@ function fieldKey(f: CourseCustomFieldDraft) {
 function resetDraft() {
   draft.label = ''
   draft.type = 'text'
-  draft.ordem = 0
+  draft.sort_order = 0
   draft.required = false
   draft.optionsText = ''
 }
@@ -151,7 +151,7 @@ function openEdit(f: CourseCustomFieldDraft) {
   editingLocalKey.value = f._localKey ?? null
   draft.label = f.label
   draft.type = f.type
-  draft.ordem = f.ordem ?? 0
+  draft.sort_order = f.sort_order ?? 0
   draft.required = f.required ?? false
   draft.optionsText = (f.options || []).join(', ')
   formError.value = ''
@@ -179,7 +179,7 @@ function buildDraftPayload(): CourseCustomFieldDraft {
   return {
     label: draft.label.trim(),
     type: draft.type,
-    ordem: Number(draft.ordem) || 0,
+    sort_order: Number(draft.sort_order) || 0,
     required: draft.required,
     options: buildOptions(),
     optionsText: draft.optionsText,
@@ -203,7 +203,7 @@ async function saveField() {
         course_id: props.courseId,
         label: payload.label,
         type: payload.type,
-        ordem: payload.ordem,
+        sort_order: payload.sort_order,
         required: payload.required,
         options: payload.options,
       }

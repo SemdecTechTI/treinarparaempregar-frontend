@@ -13,6 +13,7 @@
         @keyup.enter="load(1)"
       />
       <button type="button" class="btn text-sm py-2" @click="load(1)">Buscar</button>
+      <AdminExportButton endpoint="/admin/exports/citizens" filename="cidadaos" :filters="{ search }" />
     </div>
 
     <div v-if="loading" class="text-muted text-sm">Carregando...</div>
@@ -75,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'citizens' })
 
 const citizens = ref<any[]>([])
 const loading = ref(true)

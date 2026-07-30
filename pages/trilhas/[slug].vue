@@ -4,8 +4,8 @@
       <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-dark" />
       <div class="absolute top-10 right-10 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
       <div class="container mx-auto px-4 relative z-10">
-        <h1 class="text-white !text-3xl lg:!text-5xl font-semibold">{{ trilhaInfo.titulo }}</h1>
-        <p class="text-white/75 mt-3 max-w-xl">{{ trilhaInfo.descricao }}</p>
+        <h1 class="text-white !text-3xl lg:!text-5xl font-semibold">{{ trilhaInfo.title }}</h1>
+        <p class="text-white/75 mt-3 max-w-xl">{{ trilhaInfo.description }}</p>
       </div>
     </section>
     <section class="container mx-auto px-4 pb-16">
@@ -22,16 +22,16 @@
 const route = useRoute()
 const slug = route.params.slug as string
 
-const trilhaMap: Record<string, { titulo: string; descricao: string; trilha: string }> = {
-  base: { titulo: 'SIMM Prepara (Base)', descricao: 'Cursos de base e preparação para o mercado de trabalho.', trilha: 'base' },
-  saude: { titulo: 'Carreiras — Saúde', descricao: 'Qualificação para o setor de saúde.', trilha: 'saude' },
-  servicos: { titulo: 'Soft Skills — Serviços', descricao: 'Competências para o setor de serviços.', trilha: 'servicos' },
-  tecnicos: { titulo: 'Técnicos — Construção Civil', descricao: 'Cursos técnicos para construção civil.', trilha: 'tecnicos' },
-  softskills: { titulo: 'Soft Skills — Serviços', descricao: 'Competências para o setor de serviços.', trilha: 'servicos' },
-  carreiras: { titulo: 'Carreiras — Saúde', descricao: 'Qualificação para o setor de saúde.', trilha: 'saude' },
+const trilhaMap: Record<string, { title: string; description: string; trilha: string }> = {
+  base: { title: 'SIMM Prepara (Base)', description: 'Cursos de base e preparação para o mercado de trabalho.', trilha: 'base' },
+  saude: { title: 'Carreiras — Saúde', description: 'Qualificação para o setor de saúde.', trilha: 'saude' },
+  servicos: { title: 'Soft Skills — Serviços', description: 'Competências para o setor de serviços.', trilha: 'servicos' },
+  tecnicos: { title: 'Técnicos — Construção Civil', description: 'Cursos técnicos para construção civil.', trilha: 'tecnicos' },
+  softskills: { title: 'Soft Skills — Serviços', description: 'Competências para o setor de serviços.', trilha: 'servicos' },
+  carreiras: { title: 'Carreiras — Saúde', description: 'Qualificação para o setor de saúde.', trilha: 'saude' },
 }
 
-const trilhaInfo = computed(() => trilhaMap[slug] || { titulo: 'Trilha', descricao: '', trilha: slug })
+const trilhaInfo = computed(() => trilhaMap[slug] || { title: 'Trilha', description: '', trilha: slug })
 const courses = ref<any[]>([])
 const loading = ref(true)
 

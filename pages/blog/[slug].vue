@@ -12,7 +12,7 @@
   <article v-else-if="post" class="pb-20">
     <!-- Hero -->
     <div v-if="heroImage" class="relative z-0 h-[280px] sm:h-[360px] lg:h-[400px] overflow-hidden">
-      <img :src="heroImage" :alt="post.titulo" class="w-full h-full object-cover" />
+      <img :src="heroImage" :alt="post.title" class="w-full h-full object-cover" />
       <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/40 to-primary/10" />
     </div>
     <div
@@ -44,7 +44,7 @@
           <span v-if="post.author?.name">· Por {{ post.author.name }}</span>
         </div>
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-semibold text-primary leading-tight text-left">
-          {{ post.titulo }}
+          {{ post.title }}
         </h1>
         <p v-if="post.excerpt" class="text-muted mt-4 text-base lg:text-lg text-left">{{ post.excerpt }}</p>
       </div>
@@ -56,7 +56,7 @@
       />
 
       <div class="mt-10 pt-8 border-t border-gray-100">
-        <BlogShareBar :title="post.titulo" :url="shareUrl" />
+        <BlogShareBar :title="post.title" :url="shareUrl" />
       </div>
 
       <div class="mt-12 p-6 lg:p-8 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/10 border border-primary/10">
@@ -101,7 +101,7 @@ watch(post, (p) => {
   if (!p) return
   const config = useRuntimeConfig()
   const siteUrl = config.public.siteUrl as string
-  const seoTitle = p.meta_title?.replace(/\s*\|\s*Treinar para Empregar$/i, '') || p.titulo
+  const seoTitle = p.meta_title?.replace(/\s*\|\s*Treinar para Empregar$/i, '') || p.title
   const canonical = p.canonical_url ? absoluteUrl(p.canonical_url, siteUrl) : absoluteUrl(`/blog/${p.slug}`, siteUrl)
   const imagePath = p.og_image || p.cover_image
   const ogImage = imagePath ? absoluteUrl(resolveMediaUrl(imagePath), siteUrl) : absoluteUrl('/icons/apple-touch-icon.png', siteUrl)
@@ -123,7 +123,7 @@ watch(post, (p) => {
         children: JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'Article',
-          headline: p.titulo,
+          headline: p.title,
           description: p.meta_description || p.excerpt,
           image: ogImage,
           datePublished: p.published_at,

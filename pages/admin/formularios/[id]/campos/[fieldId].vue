@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const route = useRoute()
 const formId = Number(route.params.id)

@@ -5,14 +5,14 @@
         <img
           v-if="image"
           :src="image"
-          :alt="post.titulo"
+          :alt="post.title"
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div
           v-else
           class="w-full h-full flex items-center justify-center text-4xl font-bold text-primary/30"
         >
-          {{ post.titulo.charAt(0) }}
+          {{ post.title.charAt(0) }}
         </div>
         <div class="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
@@ -26,7 +26,7 @@
 
       <NuxtLink :to="`/blog/${post.slug}`" class="block flex-1">
         <h3 class="text-lg font-semibold text-primary mb-2 line-clamp-2 group-hover:text-accent transition-colors">
-          {{ post.titulo }}
+          {{ post.title }}
         </h3>
         <p v-if="post.excerpt" class="text-sm text-muted line-clamp-3">{{ post.excerpt }}</p>
       </NuxtLink>

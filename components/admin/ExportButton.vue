@@ -20,7 +20,18 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ filters: Record<string, string | number | undefined> }>()
+const props = withDefaults(
+  defineProps<{
+    filters?: Record<string, string | number | undefined>
+    endpoint?: string
+    filename?: string
+  }>(),
+  {
+    filters: () => ({}),
+    endpoint: '/admin/enrollments/export',
+    filename: 'inscricoes',
+  },
+)
 
 const exporting = ref(false)
 const dialog = useDialog()
@@ -30,7 +41,7 @@ async function exportFile(format: string) {
   try {
     const ext = format === 'csv' ? 'csv' : 'xlsx'
     const date = new Date().toISOString().slice(0, 10)
-    await downloadApiBlob('/admin/enrollments/export', `inscricoes_${date}.${ext}`, {
+    await downloadApiBlob(props.endpoint, `${props.filename}_${date}.${ext}`, {
       format,
       ...props.filters,
     })

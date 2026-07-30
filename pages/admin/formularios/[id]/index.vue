@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { formPublicAbsoluteUrl } from '~/utils/formPublicUrl'
 
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const route = useRoute()
 const config = useRuntimeConfig()

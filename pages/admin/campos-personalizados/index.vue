@@ -1,6 +1,7 @@
 <template>
   <div>
     <AdminHeader title="Campos personalizados globais">
+      <AdminExportButton endpoint="/admin/exports/custom-fields" filename="campos_personalizados" />
       <button type="button" class="btn text-sm py-2" @click="openNew">+ Novo campo global</button>
     </AdminHeader>
 
@@ -30,7 +31,7 @@
       </div>
       <div>
         <label class="form-label">Ordem</label>
-        <input v-model.number="form.ordem" type="number" min="0" class="input-modern" />
+        <input v-model.number="form.sort_order" type="number" min="0" class="input-modern" />
       </div>
       <label class="flex items-center gap-2 text-sm">
         <input v-model="form.required" type="checkbox" />
@@ -64,7 +65,7 @@
             <td class="px-4 py-3">{{ f.label }}</td>
             <td class="px-4 py-3">{{ typeLabel(f.type) }}</td>
             <td class="px-4 py-3">{{ f.required ? 'Sim' : 'Não' }}</td>
-            <td class="px-4 py-3">{{ f.ordem ?? 0 }}</td>
+            <td class="px-4 py-3">{{ f.sort_order ?? 0 }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(f) },
@@ -79,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'custom_fields' })
 
 const fields = ref<any[]>([])
 const loadError = ref('')
@@ -93,7 +94,7 @@ const optionsText = ref('')
 const form = reactive({
   label: '',
   type: 'text',
-  ordem: 0,
+  sort_order: 0,
   required: false,
 })
 
@@ -114,7 +115,7 @@ function openNew() {
   editingId.value = null
   form.label = ''
   form.type = 'text'
-  form.ordem = 0
+  form.sort_order = 0
   form.required = false
   optionsText.value = ''
   formError.value = ''
@@ -125,7 +126,7 @@ function openEdit(f: any) {
   editingId.value = f.id
   form.label = f.label
   form.type = f.type
-  form.ordem = f.ordem ?? 0
+  form.sort_order = f.sort_order ?? 0
   form.required = f.required ?? false
   optionsText.value = (f.options || []).join(', ')
   formError.value = ''
@@ -141,7 +142,7 @@ function buildBody() {
   const body: Record<string, unknown> = {
     label: form.label,
     type: form.type,
-    ordem: Number(form.ordem) || 0,
+    sort_order: Number(form.sort_order) || 0,
     required: form.required,
     global_only: true,
     course_id: null,

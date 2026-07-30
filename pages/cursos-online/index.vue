@@ -1,3 +1,3 @@
 <script setup lang="ts">
-await navigateTo('/cursos?modalidade=ead', { redirectCode: 301 })
+await navigateTo('/cursos?modalidade=online', { redirectCode: 301 })
 </script>

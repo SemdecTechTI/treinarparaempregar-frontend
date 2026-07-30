@@ -1,6 +1,7 @@
 <template>
   <div>
     <AdminHeader title="Parceiros">
+      <AdminExportButton endpoint="/admin/exports/partners" filename="parceiros" />
       <button type="button" class="btn text-sm py-2" @click="openNew">+ Novo parceiro</button>
     </AdminHeader>
 
@@ -66,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'partners' })
 
 const partners = ref<any[]>([])
 const loadError = ref('')

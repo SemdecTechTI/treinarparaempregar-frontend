@@ -14,6 +14,7 @@
       />
       <button type="button" class="btn text-sm py-2" @click="load">Buscar</button>
       <NuxtLink to="/admin/formularios/respostas" class="btn btn-outline text-sm py-2">Todas as respostas</NuxtLink>
+      <AdminExportButton endpoint="/admin/exports/forms" filename="formularios" />
     </div>
 
     <div v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</div>
@@ -60,7 +61,7 @@
 import type { RowActionItem } from '~/types/row-action'
 import { formPublicAbsoluteUrl } from '~/utils/formPublicUrl'
 
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const config = useRuntimeConfig()
 const dialog = useDialog()

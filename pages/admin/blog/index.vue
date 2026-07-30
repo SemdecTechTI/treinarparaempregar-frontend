@@ -1,6 +1,7 @@
 <template>
   <div>
     <AdminHeader title="Blog">
+      <AdminExportButton endpoint="/admin/exports/blog-posts" filename="blog_posts" />
       <AdminActionButton to="/admin/blog/novo" label="+ Novo artigo" variant="primary" size="md" />
     </AdminHeader>
 
@@ -23,7 +24,7 @@
           </tr>
           <tr v-for="post in posts" :key="post.id" class="border-t">
             <td class="px-4 py-3">
-              <p class="font-medium text-primary">{{ post.titulo }}</p>
+              <p class="font-medium text-primary">{{ post.title }}</p>
               <p class="text-xs text-muted truncate max-w-xs">{{ post.slug }}</p>
             </td>
             <td class="px-4 py-3">
@@ -51,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'blog' })
 
 const posts = ref<any[]>([])
 const loadError = ref('')
@@ -76,7 +77,7 @@ async function load() {
 }
 
 async function remove(post: any) {
-  if (!await dialog.confirm(`Remover artigo "${post.titulo}"?`, {
+  if (!await dialog.confirm(`Remover artigo "${post.title}"?`, {
     title: 'Remover artigo',
     confirmText: 'Remover',
     danger: true,

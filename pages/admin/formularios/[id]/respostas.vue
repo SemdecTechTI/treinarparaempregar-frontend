@@ -4,11 +4,20 @@
       <button
         v-if="formId"
         type="button"
+        class="btn text-sm py-2 bg-green-600 hover:bg-green-700"
+        :disabled="exporting"
+        @click="exportFile('xlsx')"
+      >
+        {{ exporting ? 'Exportando...' : 'Exportar XLSX' }}
+      </button>
+      <button
+        v-if="formId"
+        type="button"
         class="btn btn-outline text-sm py-2"
         :disabled="exporting"
-        @click="exportCsv"
+        @click="exportFile('csv')"
       >
-        {{ exporting ? 'Exportando...' : 'Exportar CSV' }}
+        Exportar CSV
       </button>
     </AdminHeader>
 
@@ -44,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const route = useRoute()
 const formId = Number(route.params.id)
@@ -64,11 +73,11 @@ function formatDate(d: string) {
   return new Date(d).toLocaleString('pt-BR')
 }
 
-async function exportCsv() {
+async function exportFile(format: 'csv' | 'xlsx') {
   exporting.value = true
   try {
     const date = new Date().toISOString().slice(0, 10)
-    await downloadApiBlob(`/admin/forms/${formId}/export-csv`, `formulario-${formId}-respostas-${date}.csv`)
+    await downloadApiBlob(`/admin/forms/${formId}/export-csv`, `formulario-${formId}-respostas-${date}.${format}`, { format })
   } catch (e: any) {
     await dialog.error(e?.message || 'Não foi possível exportar.')
   } finally {

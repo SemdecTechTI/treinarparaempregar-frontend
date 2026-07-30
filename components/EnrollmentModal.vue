@@ -72,7 +72,11 @@ const props = defineProps<{
   customFields: any[]
   documents: Array<{ key: string; label: string; required: boolean }>
   linkInscricao?: string | null
+  /** When true, stay on the current page after enrollment (e.g. online courses with videos). */
+  stayOnPage?: boolean
 }>()
+
+const emit = defineEmits<{ enrolled: [] }>()
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -118,14 +122,26 @@ async function submit() {
       formData.append(`custom_field_files[${id}]`, file)
     })
 
-    const result = await useApiForm<{ message: string; link_inscricao?: string }>('/enrollments', formData)
+    const result = await useApiForm<{ message: string; on_waiting_list?: boolean; link_inscricao?: string }>('/enrollments', formData)
     open.value = false
+    emit('enrolled')
+
+    if (result?.on_waiting_list) {
+      await useDialog().alert(
+        result.message || 'As vagas regulares já foram preenchidas. Você entrou na lista de reserva e será chamado caso surja uma vaga.',
+        'Você está na lista de reserva',
+        'warning',
+      )
+    }
+
     const link = result?.link_inscricao || props.linkInscricao
     if (link) {
       window.location.href = link
       return
     }
-    await navigateTo('/conta')
+    if (!props.stayOnPage) {
+      await navigateTo('/conta')
+    }
   } catch (e: any) {
     error.value = e?.data?.message || 'Erro ao inscrever-se.'
   } finally {

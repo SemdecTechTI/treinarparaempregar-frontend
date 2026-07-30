@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const entries = ref<any[]>([])
 const loading = ref(true)

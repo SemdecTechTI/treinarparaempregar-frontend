@@ -7,7 +7,7 @@
         </div>
         <h2 class="text-xl font-semibold text-primary mb-2">Vagas esgotadas</h2>
         <p class="text-text text-sm mb-6">
-          As vagas para o curso <strong>{{ titulo }}</strong> estão esgotadas. Tente novamente mais tarde ou escolha outro curso disponível.
+          As vagas para o curso <strong>{{ title }}</strong> estão esgotadas. Tente novamente mais tarde ou escolha outro curso disponível.
         </p>
         <div class="flex gap-3 justify-center">
           <button class="btn" @click="open = false">Entendi</button>
@@ -20,5 +20,5 @@
 
 <script setup lang="ts">
 const open = defineModel<boolean>('open', { default: false })
-defineProps<{ titulo: string }>()
+defineProps<{ title: string }>()
 </script>

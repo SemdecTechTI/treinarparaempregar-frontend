@@ -21,7 +21,25 @@
       <div class="space-y-6">
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="font-semibold text-primary mb-4">Status</h2>
-          <EnrollmentStatusBadge :status="enrollment.status" class="mb-4" />
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <EnrollmentStatusBadge :status="enrollment.status" />
+            <span
+              v-if="enrollment.on_waiting_list"
+              class="inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-300"
+            >
+              ⚠️ Lista de reserva
+            </span>
+            <span
+              v-if="enrollment.partner_status"
+              class="inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1 rounded-full text-xs font-semibold"
+              :class="enrollment.partner_status === 'concluido'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-red-50 text-red-700 border border-red-200'"
+              title="Status do cidadão junto ao parceiro"
+            >
+              Parceiro: {{ enrollment.partner_status === 'concluido' ? 'Concluído' : 'Evadido' }}
+            </span>
+          </div>
           <div class="space-y-2">
             <select v-model="newStatus" class="w-full border rounded px-3 py-2 text-sm">
               <option value="pendente">Pendente</option>
@@ -33,7 +51,7 @@
               <option value="cancelado">Cancelado</option>
               <option value="desistente">Desistente</option>
             </select>
-            <textarea v-model="observacao" rows="3" placeholder="Observação..." class="w-full border rounded px-3 py-2 text-sm" />
+            <textarea v-model="note" rows="3" placeholder="Observação..." class="w-full border rounded px-3 py-2 text-sm" />
             <div class="flex flex-wrap gap-3 pt-1">
               <button class="btn text-sm py-2" @click="updateStatus" :disabled="saving">{{ saving ? 'Salvando...' : 'Salvar status' }}</button>
               <AdminActionButton to="/admin/inscricoes" label="Voltar" variant="outline" size="md" />
@@ -47,7 +65,7 @@
             <div v-for="h in enrollment.status_history" :key="h.id" class="border-b pb-2">
               <p><EnrollmentStatusBadge :status="h.to_status" /></p>
               <p class="text-xs text-muted">{{ formatDate(h.created_at) }} — {{ h.changed_by_user?.name }}</p>
-              <p v-if="h.observacao" class="text-xs mt-1">{{ h.observacao }}</p>
+              <p v-if="h.note" class="text-xs mt-1">{{ h.note }}</p>
             </div>
           </div>
         </div>
@@ -57,14 +75,14 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'enrollments' })
 
 const route = useRoute()
 const id = route.params.id as string
 const enrollment = ref<any>(null)
 const loading = ref(true)
 const newStatus = ref('')
-const observacao = ref('')
+const note = ref('')
 const saving = ref(false)
 
 const fullAddress = computed(() => {
@@ -87,10 +105,10 @@ async function updateStatus() {
   try {
     await useApi(`/admin/enrollments/${id}/status`, {
       method: 'PUT',
-      body: { status: newStatus.value, observacao: observacao.value },
+      body: { status: newStatus.value, note: note.value },
     })
     await load()
-    observacao.value = ''
+    note.value = ''
   } finally {
     saving.value = false
   }

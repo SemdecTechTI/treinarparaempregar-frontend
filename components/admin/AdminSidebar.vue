@@ -6,15 +6,12 @@
     </div>
     <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
       <NuxtLink to="/admin" class="admin-nav-link" :class="navClass('/admin', true)">Dashboard</NuxtLink>
-      <NuxtLink to="/admin/inscricoes" class="admin-nav-link" :class="navClass('/admin/inscricoes')">Inscrições</NuxtLink>
-      <NuxtLink to="/admin/cursos" class="admin-nav-link" :class="navClass('/admin/cursos')">Cursos</NuxtLink>
-      <NuxtLink to="/admin/acervo" class="admin-nav-link" :class="navClass('/admin/acervo')">Acervo</NuxtLink>
-      <NuxtLink to="/admin/parceiros" class="admin-nav-link" :class="navClass('/admin/parceiros')">Parceiros</NuxtLink>
-      <NuxtLink to="/admin/blog" class="admin-nav-link" :class="navClass('/admin/blog')">Blog</NuxtLink>
-      <NuxtLink to="/admin/formularios" class="admin-nav-link" :class="navClass('/admin/formularios')">Formulários</NuxtLink>
-      <NuxtLink to="/admin/campos-personalizados" class="admin-nav-link" :class="navClass('/admin/campos-personalizados')">Campos globais</NuxtLink>
-      <NuxtLink to="/admin/cidadaos" class="admin-nav-link" :class="navClass('/admin/cidadaos')">Cidadãos</NuxtLink>
+      <template v-for="link in navLinks" :key="link.to">
+        <NuxtLink v-if="auth.hasModule(link.module)" :to="link.to" class="admin-nav-link" :class="navClass(link.to)">{{ link.label }}</NuxtLink>
+      </template>
       <NuxtLink v-if="auth.isAdmin" to="/admin/usuarios" class="admin-nav-link" :class="navClass('/admin/usuarios')">Usuários</NuxtLink>
+      <NuxtLink v-if="auth.isAdmin" to="/admin/perfis" class="admin-nav-link" :class="navClass('/admin/perfis')">Perfis de acesso</NuxtLink>
+      <NuxtLink v-if="auth.isAdmin" to="/admin/logs" class="admin-nav-link" :class="navClass('/admin/logs')">Log de atividades</NuxtLink>
     </nav>
     <div class="p-4 border-t border-white/10 space-y-3">
       <p class="text-xs text-gray-400 truncate">{{ auth.user?.name }}</p>
@@ -27,6 +24,21 @@
 <script setup lang="ts">
 const auth = useAuthStore()
 const route = useRoute()
+
+// module = chave registrada em AdminModules (backend); o link só aparece
+// se o perfil do usuário tiver a permissão (admin vê tudo)
+const navLinks = [
+  { to: '/admin/inscricoes', label: 'Inscrições', module: 'enrollments' },
+  { to: '/admin/cursos', label: 'Cursos', module: 'courses' },
+  { to: '/admin/trilhas', label: 'Trilhas', module: 'tracks' },
+  { to: '/admin/empresas', label: 'Empresas', module: 'companies' },
+  { to: '/admin/vagas-emprego', label: 'Vagas', module: 'job_vacancies' },
+  { to: '/admin/parceiros', label: 'Parceiros', module: 'partners' },
+  { to: '/admin/blog', label: 'Blog', module: 'blog' },
+  { to: '/admin/formularios', label: 'Formulários', module: 'forms' },
+  { to: '/admin/campos-personalizados', label: 'Campos globais', module: 'custom_fields' },
+  { to: '/admin/cidadaos', label: 'Cidadãos', module: 'citizens' },
+]
 
 const activeNavClass = 'bg-white/10'
 

@@ -6,7 +6,7 @@
     <img
       v-if="image"
       :src="image"
-      :alt="post.titulo"
+      :alt="post.title"
       class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
     />
     <div
@@ -19,7 +19,7 @@
         Destaque
       </span>
       <h2 class="text-2xl lg:text-4xl font-semibold text-white mb-3 max-w-3xl">
-        {{ post.titulo }}
+        {{ post.title }}
       </h2>
       <p v-if="post.excerpt" class="text-white/80 text-sm lg:text-base max-w-2xl line-clamp-2 mb-4">
         {{ post.excerpt }}

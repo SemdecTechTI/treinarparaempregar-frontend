@@ -4,6 +4,9 @@ export interface User {
   email: string
   cpf?: string
   role: string
+  birth_date?: string
+  gender?: string
+  allowed_modules?: string[]
   phone?: string
   cep?: string
   address?: string
@@ -12,6 +15,17 @@ export interface User {
   city?: string
   state?: string
   complement?: string
+}
+
+function ageFromBirthDate(birthDate?: string | null): number | null {
+  if (!birthDate) return null
+  const birth = new Date(birthDate.includes('T') ? birthDate : `${birthDate}T12:00:00`)
+  if (Number.isNaN(birth.getTime())) return null
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age -= 1
+  return age
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -23,6 +37,16 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => user.value !== null)
   const isStaff = computed(() => user.value && ['admin', 'atendente'].includes(user.value.role))
   const isAdmin = computed(() => user.value?.role === 'admin')
+  const isAdult = computed(() => {
+    const age = ageFromBirthDate(user.value?.birth_date)
+    return age !== null && age >= 18
+  })
+
+  function hasModule(module: string): boolean {
+    if (!user.value) return false
+    if (user.value.role === 'admin') return true
+    return (user.value.allowed_modules ?? []).includes(module)
+  }
 
   async function fetchUser() {
     if (fetchPromise) return fetchPromise
@@ -83,6 +107,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     isStaff,
     isAdmin,
+    isAdult,
+    hasModule,
     fetchUser,
     login,
     register,

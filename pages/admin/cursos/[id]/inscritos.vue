@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'courses' })
 
 const route = useRoute()
 const courseId = Number(route.params.id)
@@ -31,7 +31,7 @@ const pageTitle = computed(() =>
 onMounted(async () => {
   try {
     const course = await useApi<any>(`/admin/courses/${courseId}`)
-    courseTitle.value = course.titulo
+    courseTitle.value = course.title
   } catch (e: any) {
     courseError.value = e?.data?.message || 'Curso não encontrado.'
   }

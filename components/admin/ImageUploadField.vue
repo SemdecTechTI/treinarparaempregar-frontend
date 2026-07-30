@@ -31,7 +31,7 @@
           :disabled="uploading"
           @change="onFileChange"
         />
-        {{ uploading ? 'Enviando...' : modelValue ? 'Trocar imagem' : 'Selecionar imagem' }}
+        {{ uploading ? 'Enviando...' : modelValue ? 'Trocar image' : 'Selecionar image' }}
       </label>
       <span class="text-xs text-muted">JPG, PNG ou WebP — até 5 MB</span>
     </div>
@@ -47,7 +47,7 @@ const props = withDefaults(
   defineProps<{
     label?: string
     hint?: string
-        context?: 'partner_logo' | 'course_image' | 'course_cover' | 'blog_cover' | 'acervo_cover'
+        context?: 'partner_logo' | 'course_image' | 'course_cover' | 'blog_cover'
   }>(),
   { context: 'course_image' },
 )
@@ -79,7 +79,7 @@ async function onFileChange(event: Event) {
     const data = await useApiForm<{ url: string }>('/admin/media', formData)
     modelValue.value = data.url
   } catch (e: any) {
-    error.value = e?.data?.message || 'Não foi possível enviar a imagem.'
+    error.value = e?.data?.message || 'Não foi possível enviar a image.'
   } finally {
     uploading.value = false
   }

@@ -93,6 +93,8 @@
 </template>
 
 <script setup lang="ts">
+import { loadTracks } from '~/utils/tracks'
+
 const props = withDefaults(
   defineProps<{
     /** Itens por página (0 = sem paginação) */
@@ -130,19 +132,24 @@ const filters = reactive({
   modalidade: props.initialModalidade || (props.syncQuery ? (route.query.modalidade as string) : '') || '',
 })
 
-const trilhaOptions = [
+const trilhaOptions = ref([
   { label: 'Todas', value: '', icon: '✨' },
-  { label: 'Base', value: 'base', icon: '📚' },
-  { label: 'Saúde', value: 'saude', icon: '🏥' },
-  { label: 'Serviços', value: 'servicos', icon: '💼' },
-  { label: 'Técnicos', value: 'tecnicos', icon: '🔧' },
-]
+])
 
 const modalidadeOptions = [
   { label: 'Todas', value: '', icon: '🎯' },
   { label: 'Presencial', value: 'presencial', icon: '🏫' },
-  { label: 'EAD', value: 'ead', icon: '💻' },
+  { label: 'Online', value: 'online', icon: '💻' },
+  { label: 'EAD', value: 'ead', icon: '🌐' },
 ]
+
+const TRACK_ICONS: Record<string, string> = {
+  base: '📚',
+  saude: '🏥',
+  servicos: '💼',
+  tecnicos: '🔧',
+  jovem: '🌟',
+}
 
 const totalCount = computed(() => courses.value.length)
 
@@ -180,24 +187,43 @@ if (props.syncQuery) {
   )
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (props.syncQuery && route.query.page) {
     currentPage.value = Math.max(1, Number(route.query.page) || 1)
+  }
+  try {
+    const tracks = await loadTracks()
+    trilhaOptions.value = [
+      { label: 'Todas', value: '', icon: '✨' },
+      ...tracks.map(t => ({
+        label: t.name.replace(/\s*\(.*\)\s*$/, '') || t.name,
+        value: t.slug,
+        icon: TRACK_ICONS[t.slug] || '📘',
+      })),
+    ]
+  } catch {
+    // fallback já em loadTracks
   }
   loadCourses()
 })
 
 async function loadCourses() {
   loading.value = true
+  const params = new URLSearchParams()
+  if (filters.trilha) params.set('trilha', filters.trilha)
+  if (filters.modalidade) params.set('modalidade', filters.modalidade)
+  const qs = params.toString()
+  const path = `/cursos${qs ? `?${qs}` : ''}`
   try {
-    const params = new URLSearchParams()
-    if (filters.trilha) params.set('trilha', filters.trilha)
-    if (filters.modalidade) params.set('modalidade', filters.modalidade)
-    const qs = params.toString()
-    courses.value = await useApiPublic<any[]>(`/cursos${qs ? `?${qs}` : ''}`)
+    // Com cookies: aplica filtro "só mulheres" para quem está logado.
+    courses.value = await useApi<any[]>(path)
     if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
   } catch {
-    courses.value = []
+    try {
+      courses.value = await useApiPublic<any[]>(path)
+    } catch {
+      courses.value = []
+    }
   } finally {
     loading.value = false
   }

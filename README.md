@@ -43,10 +43,9 @@ Com Laradock, suba o backend antes (`laradock/docker compose up -d nginx mysql`)
 | Rota | Descrição |
 |------|-----------|
 | `/` | Home com filtros de cursos |
-| `/cursos/*` | Detalhe e inscrição |
+| `/cursos/*` | Detalhe, inscrição e vídeos (online) |
 | `/cadastro`, `/login` | Autenticação |
 | `/account` | Área do cidadão |
-| `/cursos-online/*` | EAD com tracking de vídeo |
 | `/admin/*` | Painel administrativo |
 
 ## Build

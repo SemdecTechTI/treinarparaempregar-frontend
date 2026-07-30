@@ -38,6 +38,16 @@
               </NuxtLink>
             </div>
           </div>
+
+          <NuxtLink
+            to="/cadastre-sua-vaga"
+            class="ml-2 text-sm font-semibold px-4 py-2 rounded-xl transition-all"
+            :class="lightNav
+              ? 'bg-white/15 text-white ring-1 ring-white/40 hover:bg-white/25'
+              : 'bg-accent/10 text-accent ring-1 ring-accent/30 hover:bg-accent hover:text-white'"
+          >
+            Cadastre sua vaga
+          </NuxtLink>
         </nav>
 
         <div class="flex items-center gap-2">
@@ -88,7 +98,6 @@
               </button>
               <div class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl py-2 shadow-card border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                 <NuxtLink to="/conta" class="nav-dropdown-link">Minha Conta</NuxtLink>
-                <NuxtLink to="/acervo" class="nav-dropdown-link">Acervo</NuxtLink>
                 <button type="button" @click="auth.logout()" class="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-lg">
                   Sair
                 </button>
@@ -133,12 +142,11 @@
             {{ link.label }}
           </NuxtLink>
           <NuxtLink
-            v-if="auth.isLoggedIn"
-            to="/acervo"
-            class="nav-link nav-link-light"
+            to="/cadastre-sua-vaga"
+            class="nav-link text-accent font-semibold"
             @click="mobileOpen = false"
           >
-            Acervo
+            Cadastre sua vaga
           </NuxtLink>
           <NuxtLink
             v-if="!auth.isLoggedIn"
@@ -175,7 +183,6 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 const navLinks = [
   { to: '/quem-somos', label: 'Quem somos' },
   { to: '/cursos', label: 'Cursos' },
-  { to: '/seja-parceiro', label: 'Seja parceiro' },
   { to: '/blog', label: 'Blog' },
 ]
 

@@ -1,8 +1,11 @@
 <template>
   <div>
     <AdminHeader :title="form?.title ? `Gráficos: ${form.title}` : 'Gráficos'">
-      <button type="button" class="btn btn-outline text-sm py-2" :disabled="exporting" @click="exportCsv">
-        {{ exporting ? 'Exportando...' : 'Exportar CSV' }}
+      <button type="button" class="btn text-sm py-2 bg-green-600 hover:bg-green-700" :disabled="exporting" @click="exportFile('xlsx')">
+        {{ exporting ? 'Exportando...' : 'Exportar XLSX' }}
+      </button>
+      <button type="button" class="btn btn-outline text-sm py-2" :disabled="exporting" @click="exportFile('csv')">
+        Exportar CSV
       </button>
     </AdminHeader>
 
@@ -40,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const route = useRoute()
 const formId = Number(route.params.id)
@@ -64,11 +67,11 @@ function fieldBarWidth(count: number, data: Record<string, number>) {
   return `${(count / max) * 100}%`
 }
 
-async function exportCsv() {
+async function exportFile(format: 'csv' | 'xlsx') {
   exporting.value = true
   try {
     const date = new Date().toISOString().slice(0, 10)
-    await downloadApiBlob(`/admin/forms/${formId}/export-csv`, `formulario-${formId}-respostas-${date}.csv`)
+    await downloadApiBlob(`/admin/forms/${formId}/export-csv`, `formulario-${formId}-respostas-${date}.${format}`, { format })
   } catch (e: any) {
     await dialog.error(e?.message || 'Não foi possível exportar.')
   } finally {

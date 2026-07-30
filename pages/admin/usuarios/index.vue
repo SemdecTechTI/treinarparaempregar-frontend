@@ -1,6 +1,7 @@
 <template>
   <div>
     <AdminHeader title="Usuários">
+      <AdminExportButton endpoint="/admin/exports/users" filename="usuarios" />
       <button type="button" class="btn text-sm py-2" @click="openNew">+ Novo usuário</button>
     </AdminHeader>
 
@@ -21,10 +22,16 @@
       </div>
       <div>
         <label class="form-label">Perfil</label>
-        <select v-model="form.role" class="input-modern">
+        <select v-model="form.access" class="input-modern">
           <option value="admin">Administrador</option>
-          <option value="atendente">Atendente</option>
+          <option v-for="p in profiles" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
         </select>
+        <p class="text-xs text-muted mt-1">
+          <template v-if="form.access === 'admin'">Administradores gerenciam todos os módulos, usuários e perfis.</template>
+          <template v-else>O perfil define quais menus o usuário pode ver.
+            <NuxtLink to="/admin/perfis" class="text-primary underline">Gerenciar perfis</NuxtLink>
+          </template>
+        </p>
       </div>
       <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-3">
@@ -50,7 +57,7 @@
           <tr v-for="u in users" :key="u.id" class="border-t">
             <td class="px-4 py-3">{{ u.name }}</td>
             <td class="px-4 py-3">{{ u.email }}</td>
-            <td class="px-4 py-3 capitalize">{{ u.role }}</td>
+            <td class="px-4 py-3">{{ accessLabel(u) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(u) },
@@ -65,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminOnly: true })
 
 const auth = useAuthStore()
 const dialog = useDialog()
@@ -76,16 +83,28 @@ const editingId = ref<number | null>(null)
 const saving = ref(false)
 const formError = ref('')
 
+const profiles = ref<any[]>([])
+
 const form = reactive({
   name: '',
   email: '',
   password: '',
-  role: 'atendente',
+  access: 'admin' as string,
 })
+
+function accessLabel(u: any) {
+  if (u.role === 'admin') return 'Administrador'
+  return u.admin_profile?.name || 'Sem perfil'
+}
 
 async function load() {
   try {
-    users.value = await useApi<any[]>('/admin/users')
+    const [userList, profileList] = await Promise.all([
+      useApi<any[]>('/admin/users'),
+      useApi<any[]>('/admin/profiles'),
+    ])
+    users.value = userList
+    profiles.value = profileList
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar usuários.'
   }
@@ -96,7 +115,7 @@ function openNew() {
   form.name = ''
   form.email = ''
   form.password = ''
-  form.role = 'atendente'
+  form.access = profiles.value[0] ? String(profiles.value[0].id) : 'admin'
   formError.value = ''
   showForm.value = true
 }
@@ -106,7 +125,7 @@ function openEdit(u: any) {
   form.name = u.name
   form.email = u.email
   form.password = ''
-  form.role = u.role
+  form.access = u.role === 'admin' ? 'admin' : String(u.admin_profile_id ?? '')
   formError.value = ''
   showForm.value = true
 }
@@ -120,10 +139,17 @@ async function save() {
   saving.value = true
   formError.value = ''
   try {
-    const body: Record<string, string> = {
+    const isAdmin = form.access === 'admin'
+    if (!isAdmin && !form.access) {
+      formError.value = 'Selecione um perfil de acesso.'
+      return
+    }
+
+    const body: Record<string, unknown> = {
       name: form.name,
       email: form.email,
-      role: form.role,
+      role: isAdmin ? 'admin' : 'atendente',
+      admin_profile_id: isAdmin ? null : Number(form.access),
     }
     if (form.password) body.password = form.password
 

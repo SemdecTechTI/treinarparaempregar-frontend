@@ -38,4 +38,4 @@ useHead({
     },
   ],
 })
-</script>
+</script>

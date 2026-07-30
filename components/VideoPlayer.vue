@@ -24,20 +24,17 @@ const props = withDefaults(
   defineProps<{
     videoUrl: string
     duration: number
-    lessonId?: number
-    acervoVideoId?: number
-    progressType?: 'lesson' | 'acervo_video'
+    courseVideoId?: number
+    progressType?: 'course_video'
   }>(),
-  { progressType: 'lesson' },
+  { progressType: 'course_video' },
 )
 
 const videoRef = ref<HTMLVideoElement | null>(null)
 const { saveProgress, getProgress } = useProgress()
 
-const resourceId = computed(() => props.acervoVideoId ?? props.lessonId ?? 0)
-const progressKind = computed(() =>
-  props.acervoVideoId ? 'acervo_video' : props.progressType,
-)
+const resourceId = computed(() => props.courseVideoId ?? 0)
+const progressKind = computed(() => props.progressType)
 
 const isDirectVideo = computed(() =>
   /\.(mp4|webm|ogg)(\?|$)/i.test(props.videoUrl) || props.videoUrl.includes('commondatastorage'),

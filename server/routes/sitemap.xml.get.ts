@@ -7,7 +7,7 @@ const STATIC_PATHS = [
   '/cursos',
   '/cadastrar',
   '/entrar',
-  '/seja-parceiro',
+  '/cadastre-sua-vaga',
   '/trilhas/base',
   '/trilhas/saude',
   '/trilhas/servicos',

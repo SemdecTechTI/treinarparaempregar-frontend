@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'admin', middleware: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'blog' })
 
 const route = useRoute()
 const dialog = useDialog()

@@ -10,14 +10,14 @@
       <img
         v-if="image"
         :src="image"
-        :alt="post.titulo"
+        :alt="post.title"
         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
       <div
         v-else
         class="w-full h-full flex items-center justify-center text-6xl font-bold text-primary/20"
       >
-        {{ post.titulo.charAt(0) }}
+        {{ post.title.charAt(0) }}
       </div>
     </div>
 
@@ -27,7 +27,7 @@
         <span v-if="post.reading_time_minutes">· {{ post.reading_time_minutes }} min</span>
       </div>
       <h3 class="text-xl lg:text-2xl font-semibold text-primary mb-3 group-hover:text-accent transition-colors">
-        {{ post.titulo }}
+        {{ post.title }}
       </h3>
       <p v-if="post.excerpt" class="text-muted text-sm lg:text-base line-clamp-3 mb-4">{{ post.excerpt }}</p>
       <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-accent">

@@ -20,4 +20,11 @@ const auth = useAuthStore()
 
 /** Evita flash do painel antes do middleware/redirecionamento */
 const showAdmin = computed(() => auth.initialized && auth.isStaff)
+
+const vacancyNotifications = useVacancyNotifications()
+watch(showAdmin, (visible) => {
+  if (visible) vacancyNotifications.start()
+  else vacancyNotifications.stop()
+}, { immediate: true })
+onUnmounted(() => vacancyNotifications.stop())
 </script>

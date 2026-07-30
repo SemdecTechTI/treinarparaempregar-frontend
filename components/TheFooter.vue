@@ -28,7 +28,7 @@
             <li><NuxtLink to="/cursos" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Cursos</NuxtLink></li>
             <li><NuxtLink to="/blog" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Blog</NuxtLink></li>
             <li><NuxtLink to="/cadastrar" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Cadastrar</NuxtLink></li>
-            <li><NuxtLink to="/seja-parceiro" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Seja um parceiro</NuxtLink></li>
+            <li><NuxtLink to="/cadastre-sua-vaga" class="hover:text-white transition-colors inline-flex items-center gap-1 group font-semibold text-accent"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Cadastre sua vaga</NuxtLink></li>
           </ul>
         </div>
 

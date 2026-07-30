@@ -10,7 +10,7 @@
     <form v-if="showForm" @submit.prevent="addVideo" class="bg-slate-50 rounded-lg p-4 space-y-3 border border-slate-200">
       <div>
         <label class="form-label">Título do vídeo</label>
-        <input v-model="newVideo.titulo" type="text" required class="input-modern" />
+        <input v-model="newVideo.title" type="text" required class="input-modern" />
       </div>
       <div>
         <label class="form-label">URL do vídeo</label>
@@ -18,16 +18,16 @@
       </div>
       <div>
         <label class="form-label">Descrição</label>
-        <textarea v-model="newVideo.descricao" rows="2" class="input-modern" />
+        <textarea v-model="newVideo.description" rows="2" class="input-modern" />
       </div>
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="form-label">Duração (segundos)</label>
-          <input v-model.number="newVideo.duracao_segundos" type="number" min="0" class="input-modern" />
+          <input v-model.number="newVideo.duration_seconds" type="number" min="0" class="input-modern" />
         </div>
         <div>
           <label class="form-label">Ordem</label>
-          <input v-model.number="newVideo.ordem" type="number" min="0" class="input-modern" />
+          <input v-model.number="newVideo.sort_order" type="number" min="0" class="input-modern" />
         </div>
       </div>
       <p v-if="videoError" class="text-red-600 text-sm">{{ videoError }}</p>
@@ -45,9 +45,9 @@
         class="flex flex-wrap items-start justify-between gap-3 p-4 border border-gray-200 rounded-lg bg-white"
       >
         <div class="min-w-0 flex-1">
-          <p class="font-medium text-primary">{{ video.titulo }}</p>
+          <p class="font-medium text-primary">{{ video.title }}</p>
           <p class="text-xs text-muted truncate">{{ video.video_url }}</p>
-          <p class="text-xs text-muted mt-1">Ordem {{ video.ordem }} · {{ formatDuration(video.duracao_segundos) }}</p>
+          <p class="text-xs text-muted mt-1">Ordem {{ video.sort_order }} · {{ formatDuration(video.duration_seconds) }}</p>
         </div>
         <button type="button" class="text-xs text-red-600 hover:underline" @click="removeVideo(video)">
           Remover
@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ acervoId: number }>()
+const props = defineProps<{ courseId: number }>()
 const emit = defineEmits<{ refreshed: [] }>()
 
 const videos = ref<any[]>([])
@@ -68,11 +68,11 @@ const videoError = ref('')
 const dialog = useDialog()
 
 const newVideo = reactive({
-  titulo: '',
+  title: '',
   video_url: '',
-  descricao: '',
-  duracao_segundos: 0,
-  ordem: 0,
+  description: '',
+  duration_seconds: 0,
+  sort_order: 0,
 })
 
 function formatDuration(seconds: number) {
@@ -83,7 +83,7 @@ function formatDuration(seconds: number) {
 }
 
 async function loadVideos() {
-  const data = await useApi<any>(`/admin/acervos/${props.acervoId}`)
+  const data = await useApi<any>(`/admin/courses/${props.courseId}`)
   videos.value = data.videos || []
 }
 
@@ -91,15 +91,15 @@ async function addVideo() {
   savingVideo.value = true
   videoError.value = ''
   try {
-    await useApi(`/admin/acervos/${props.acervoId}/videos`, {
+    await useApi(`/admin/courses/${props.courseId}/videos`, {
       method: 'POST',
       body: { ...newVideo },
     })
-    newVideo.titulo = ''
+    newVideo.title = ''
     newVideo.video_url = ''
-    newVideo.descricao = ''
-    newVideo.duracao_segundos = 0
-    newVideo.ordem = 0
+    newVideo.description = ''
+    newVideo.duration_seconds = 0
+    newVideo.sort_order = 0
     showForm.value = false
     await loadVideos()
     emit('refreshed')
@@ -111,13 +111,13 @@ async function addVideo() {
 }
 
 async function removeVideo(video: any) {
-  if (!await dialog.confirm(`Remover o vídeo "${video.titulo}"?`, {
+  if (!await dialog.confirm(`Remover o vídeo "${video.title}"?`, {
     title: 'Remover vídeo',
     confirmText: 'Remover',
     danger: true,
   })) return
   try {
-    await useApi(`/admin/acervos/${props.acervoId}/videos/${video.id}`, { method: 'DELETE' })
+    await useApi(`/admin/courses/${props.courseId}/videos/${video.id}`, { method: 'DELETE' })
     await loadVideos()
     emit('refreshed')
   } catch (e: any) {

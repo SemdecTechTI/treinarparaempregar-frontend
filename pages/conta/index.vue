@@ -24,42 +24,36 @@
             <div
               v-for="e in data?.course_enrollments"
               :key="e.id"
-              class="bg-white rounded-lg shadow p-4 flex justify-between items-center gap-4"
+              class="bg-white rounded-lg shadow p-4"
             >
-              <div>
-                <p class="font-medium">{{ e.course?.titulo }}</p>
-                <p class="text-xs text-muted">
-                  {{ trilhaLabel(e.course?.trilha) }} · {{ modalidadeLabel(e.course?.modalidade) }}
-                </p>
+              <div class="flex justify-between items-start gap-4">
+                <div class="min-w-0">
+                  <p class="font-medium">{{ e.course?.title }}</p>
+                  <p class="text-xs text-muted">
+                    {{ trilhaLabel(e.course?.track) }} · {{ modalidadeLabel(e.course?.modality) }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <EnrollmentStatusBadge :status="e.status" />
+                  <NuxtLink
+                    v-if="e.course?.slug && e.course?.modality !== 'online'"
+                    :to="`/cursos/${e.course.slug}`"
+                    class="text-sm text-accent whitespace-nowrap"
+                  >
+                    Ver curso →
+                  </NuxtLink>
+                </div>
               </div>
-              <div class="flex items-center gap-3 shrink-0">
-                <EnrollmentStatusBadge :status="e.status" />
+              <template v-if="e.course?.modality === 'online'">
+                <ProgressBar :percent="e.progress_percent || 0" class="mt-3 mb-3" />
                 <NuxtLink
                   v-if="e.course?.slug"
                   :to="`/cursos/${e.course.slug}`"
-                  class="text-sm text-accent whitespace-nowrap"
+                  class="text-sm text-accent"
                 >
-                  Ver curso →
+                  Assistir vídeos →
                 </NuxtLink>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2 class="text-lg font-semibold text-primary mb-4">Meus acervos</h2>
-          <div v-if="!data?.acervo_enrollments?.length" class="text-muted text-sm">
-            Nenhum acervo inscrito.
-            <NuxtLink to="/acervo" class="text-accent">Explorar acervos</NuxtLink>
-          </div>
-          <div class="space-y-3">
-            <div v-for="e in data?.acervo_enrollments" :key="e.id" class="bg-white rounded-lg shadow p-4">
-              <div class="flex justify-between items-start mb-2">
-                <p class="font-medium">{{ e.acervo?.titulo }}</p>
-                <EnrollmentStatusBadge :status="e.status" />
-              </div>
-              <ProgressBar :percent="e.progress_percent || 0" class="mb-3" />
-              <NuxtLink :to="`/acervo/${e.acervo?.slug}`" class="text-sm text-accent">Assistir vídeos →</NuxtLink>
+              </template>
             </div>
           </div>
         </section>
@@ -69,6 +63,8 @@
 </template>
 
 <script setup lang="ts">
+import { trackLabel, loadTracks } from '~/utils/tracks'
+
 definePageMeta({ middleware: 'auth' })
 
 usePageSeo({
@@ -80,25 +76,19 @@ usePageSeo({
 
 const data = ref<any>(null)
 
-const trilhaLabels: Record<string, string> = {
-  base: 'Base',
-  saude: 'Saúde',
-  servicos: 'Serviços',
-  tecnicos: 'Técnicos',
-}
-
 function trilhaLabel(trilha?: string) {
-  if (!trilha) return '—'
-  return trilhaLabels[trilha] || trilha
+  return trackLabel(trilha)
 }
 
 function modalidadeLabel(modalidade?: string) {
+  if (modalidade === 'online') return 'Online'
   if (modalidade === 'ead') return 'EAD'
   if (modalidade === 'presencial') return 'Presencial'
   return modalidade || '—'
 }
 
 onMounted(async () => {
+  await loadTracks()
   data.value = await useApi('/dashboard')
 })
 </script>

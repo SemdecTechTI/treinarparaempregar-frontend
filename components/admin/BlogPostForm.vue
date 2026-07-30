@@ -5,7 +5,7 @@
 
       <div>
         <label class="form-label">Título</label>
-        <input v-model="form.titulo" type="text" required class="input-modern" />
+        <input v-model="form.title" type="text" required class="input-modern" />
       </div>
 
       <div>
@@ -51,7 +51,7 @@
 
       <div>
         <label class="form-label">Ordem</label>
-        <input v-model.number="form.ordem" type="number" min="0" class="input-modern" />
+        <input v-model.number="form.sort_order" type="number" min="0" class="input-modern" />
       </div>
 
       <div class="flex items-end">
@@ -79,7 +79,7 @@
       <AdminImageUploadField
         v-model="form.og_image"
         label="Imagem Open Graph"
-        hint="Usada ao compartilhar no WhatsApp/redes. Se vazio, usa a capa."
+        hint="Usada ao compartilhar no WhatsApp/redes. Se vazio, usa a cover."
         context="blog_cover"
       />
 

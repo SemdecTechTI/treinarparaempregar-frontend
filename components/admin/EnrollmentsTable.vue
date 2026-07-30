@@ -21,7 +21,25 @@
       </select>
       <button type="button" class="btn text-sm py-2" @click="load(1)">Filtrar</button>
       <AdminExportButton :filters="exportFilters" />
+      <button
+        type="button"
+        class="btn text-sm py-2 bg-orange-600 hover:bg-orange-700"
+        :disabled="importing"
+        @click="importInput?.click()"
+      >
+        {{ importing ? 'Importando...' : 'Importar status do parceiro' }}
+      </button>
+      <input
+        ref="importInput"
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        class="hidden"
+        @change="importPartnerStatus"
+      />
     </div>
+    <p v-if="scopedToCourse" class="text-xs text-muted -mt-2 mb-4">
+      A exportação inclui inscritos de cursos vinculados (se houver). A coluna “Título interno” diferencia cada turma.
+    </p>
 
     <div v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</div>
 
@@ -40,12 +58,13 @@
             <th v-if="!scopedToCourse" class="px-4 py-3 font-medium">Curso</th>
             <th class="px-4 py-3 font-medium">Data</th>
             <th class="px-4 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium">Status no parceiro</th>
             <th class="px-4 py-3 font-medium text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!enrollments.length" class="border-t">
-            <td :colspan="scopedToCourse ? 7 : 8" class="px-4 py-12 text-center">
+            <td :colspan="scopedToCourse ? 8 : 9" class="px-4 py-12 text-center">
               <p class="text-muted text-sm">{{ emptyMessage }}</p>
               <p class="text-xs text-muted mt-2">{{ emptyHint }}</p>
             </td>
@@ -55,10 +74,31 @@
             <td class="px-4 py-3">{{ userCpf(item.user) }}</td>
             <td class="px-4 py-3">{{ userPhone(item.user) }}</td>
             <td class="px-4 py-3">{{ item.user?.email || '—' }}</td>
-            <td v-if="!scopedToCourse" class="px-4 py-3">{{ item.enrollable?.titulo || '—' }}</td>
+            <td v-if="!scopedToCourse" class="px-4 py-3">{{ item.enrollable?.title || '—' }}</td>
             <td class="px-4 py-3">{{ formatDate(item.created_at) }}</td>
             <td class="px-4 py-3">
-              <EnrollmentStatusBadge :status="item.status" />
+              <div class="flex flex-wrap items-center gap-1.5">
+                <EnrollmentStatusBadge :status="item.status" />
+                <span
+                  v-if="item.on_waiting_list"
+                  class="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded-full text-[11px] font-semibold bg-orange-100 text-orange-700 border border-orange-300"
+                  title="As vagas regulares estavam esgotadas quando esta inscrição foi feita"
+                >
+                  Reserva
+                </span>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <span
+                v-if="item.partner_status"
+                class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                :class="item.partner_status === 'concluido'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'"
+              >
+                {{ item.partner_status === 'concluido' ? 'Concluído' : 'Evadido' }}
+              </span>
+              <span v-else class="text-muted">—</span>
             </td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="enrollmentActions(item)" />
@@ -109,6 +149,9 @@ const scopedToCourse = computed(() => props.courseId != null)
 const enrollments = ref<any[]>([])
 const loading = ref(true)
 const loadError = ref('')
+const importing = ref(false)
+const importInput = ref<HTMLInputElement | null>(null)
+const dialog = useDialog()
 const filters = reactive({ search: '', status: '' })
 const meta = reactive({
   current_page: 1,
@@ -149,6 +192,33 @@ function enrollmentActions(item: any): RowActionItem[] {
       hidden: !item.user?.id,
     },
   ]
+}
+
+async function importPartnerStatus(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  importing.value = true
+  try {
+    const body = new FormData()
+    body.append('file', file)
+    if (props.courseId != null) body.append('course_id', String(props.courseId))
+
+    const result = await useApiForm<any>('/admin/enrollments/import-partner-status', body)
+
+    const parts = [`${result.updated} inscrição(ões) atualizada(s)`]
+    if (result.skipped) parts.push(`${result.skipped} linha(s) sem status preenchido (ignoradas)`)
+    if (result.not_found) parts.push(`${result.not_found} linha(s) não encontrada(s)`)
+    await dialog.alert(parts.join(' • '), 'Importação concluída', 'success')
+
+    await load(meta.current_page)
+  } catch (e: any) {
+    await dialog.error(e?.data?.message || 'Não foi possível importar a planilha.')
+  } finally {
+    importing.value = false
+    input.value = ''
+  }
 }
 
 async function load(page = 1) {
