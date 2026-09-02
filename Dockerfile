@@ -1,7 +1,10 @@
 FROM ubi9/nodejs-22
 
-ADD . .
+USER 0
+ADD . /tmp/src
+RUN chown -R 1001:0 /tmp/src
+USER 1001
 
-RUN npm install
+RUN /usr/libexec/s2i/assemble
 
-CMD npm run -d start
+CMD /usr/libexec/s2i/run
