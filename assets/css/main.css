@@ -159,7 +159,7 @@ h3 {
   }
 }
 
-a:not(.btn):not(.pill):not(.nav-link):not(.nav-dropdown-link):not(.prefeitura-link):not(.blog-share-btn):hover {
+a:not(.btn):not(.pill):not(.nav-link):not(.nav-dropdown-link):not(.prefeitura-link):not(.blog-share-btn):not(.nav-cta):hover {
   @apply text-accent transition-colors duration-200;
 }
 

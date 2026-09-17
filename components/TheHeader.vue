@@ -41,7 +41,7 @@
 
           <NuxtLink
             to="/cadastre-sua-vaga"
-            class="ml-2 text-sm font-semibold px-4 py-2 rounded-xl transition-all"
+            class="nav-cta ml-2 text-sm font-semibold px-4 py-2 rounded-xl transition-all"
             :class="lightNav
               ? 'bg-white/15 text-white ring-1 ring-white/40 hover:bg-white/25'
               : 'bg-accent/10 text-accent ring-1 ring-accent/30 hover:bg-accent hover:text-white'"
