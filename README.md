@@ -55,6 +55,28 @@ npm run build
 npm run preview
 ```
 
+## Publicação de código (GitHub + GitLab)
+
+O código é publicado em **dois destinos**:
+
+- **GitHub:** `SemdecTechTI/treinarparaempregar-frontend`
+- **GitLab SEMIT (interno):** `repositoriosemit.salvador.ba.gov.br/cleiton.teixeira/treinarparaempregar-frontend`
+
+O remote `origin` está configurado como **multi-push** (duas `pushurl`), então **um único push envia para os dois de uma vez**:
+
+```bash
+git push origin main        # → GitHub + GitLab, simultaneamente
+```
+
+O `fetch` vem só do GitHub. Existe também um remote `gitlab` separado, caso precise mirar apenas o GitLab (`git push gitlab main`).
+
+> ⚠️ **VPN obrigatória.** O GitLab da SEMIT só é acessível pela **VPN da SEMIT**. Sem VPN, o push para o GitLab trava/falha — e, como está no `origin`, derruba o push inteiro. **Valide a VPN antes de dar push:**
+>
+> ```bash
+> curl -s -o /dev/null -w "%{http_code}\n" --max-time 12 https://repositoriosemit.salvador.ba.gov.br
+> # 302 = VPN ativa · timeout/falha = VPN desconectada
+> ```
+
 ## Licença
 
 Projeto interno SEMDEC / Prefeitura de Salvador.
