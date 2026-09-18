@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware(async () => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
   if (!auth.initialized) {
     await auth.fetchUser()
@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware(async () => {
     // No SSR, o cliente revalida com cookies — evita redirect falso no F5
     if (import.meta.server) return
 
-    const route = useRoute()
-    return navigateTo(`/entrar?redirect=${encodeURIComponent(route.fullPath)}`)
+    // usa o parâmetro `to` (síncrono) em vez de useRoute() pós-await
+    return navigateTo(`/entrar?redirect=${encodeURIComponent(to.fullPath)}`)
   }
 })

@@ -4,12 +4,18 @@ function isGuestRoute(path: string) {
   return GUEST_ROUTE_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`))
 }
 
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin(async (nuxtApp) => {
   const auth = useAuthStore()
+  // Captura o router ANTES do await — depois do await o contexto do Nuxt
+  // se perde, e chamar useRouter()/navigateTo (e o middleware que ele dispara,
+  // que usa useAuthStore) fora do contexto quebra o Pinia (getActivePinia()).
+  const router = useRouter()
+
   await auth.fetchUser()
 
-  const route = useRouter().currentRoute.value
-  if (auth.isLoggedIn && isGuestRoute(route.path)) {
-    await navigateTo(auth.isStaff ? '/admin' : '/conta')
+  const path = router.currentRoute.value.path
+  if (auth.isLoggedIn && isGuestRoute(path)) {
+    // runWithContext restaura o contexto do Nuxt para a navegação e seus middlewares.
+    await nuxtApp.runWithContext(() => navigateTo(auth.isStaff ? '/admin' : '/conta'))
   }
 })
