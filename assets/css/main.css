@@ -163,6 +163,15 @@ a:not(.btn):not(.pill):not(.nav-link):not(.nav-dropdown-link):not(.prefeitura-li
   @apply text-accent transition-colors duration-200;
 }
 
+/* Admin: o card que envolve a tabela vira o container de scroll horizontal.
+   A tabela continua display:table (estica pra 100% quando cabe); quando é mais
+   larga que o card (muitas colunas), o card rola em vez de cortar a coluna Ações.
+   position:relative contém o sr-only (absolute) do botão de ações no scroll. */
+.admin-content div:has(> table) {
+  overflow-x: auto;
+  position: relative;
+}
+
 /* Mobile menu slide */
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {

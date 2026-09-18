@@ -18,7 +18,17 @@
       </div>
       <div>
         <label class="form-label">Senha {{ editingId ? '(deixe em branco para manter)' : '' }}</label>
-        <input v-model="form.password" type="password" class="input-modern" :required="!editingId" />
+        <div class="flex gap-2">
+          <div class="relative flex-1">
+            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input-modern pr-10" :required="!editingId" autocomplete="new-password" />
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'" @click="showPassword = !showPassword">
+              <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L3 3m6.88 6.88L21 21"/></svg>
+              <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+          </div>
+          <button type="button" class="btn btn-outline text-sm py-2 whitespace-nowrap" @click="generatePassword">Gerar</button>
+        </div>
+        <p v-if="!editingId" class="text-xs text-muted mt-1.5">A senha será enviada por e-mail ao usuário ao cadastrar.</p>
       </div>
       <div>
         <label class="form-label">Perfil</label>
@@ -67,6 +77,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" @change="load" />
     </div>
   </div>
 </template>
@@ -78,10 +90,20 @@ const auth = useAuthStore()
 const dialog = useDialog()
 const users = ref<any[]>([])
 const loadError = ref('')
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const saving = ref(false)
 const formError = ref('')
+const showPassword = ref(false)
+
+function generatePassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*'
+  const arr = new Uint32Array(14)
+  crypto.getRandomValues(arr)
+  form.password = Array.from(arr, (n) => chars[n % chars.length]).join('')
+  showPassword.value = true
+}
 
 const profiles = ref<any[]>([])
 
@@ -97,13 +119,16 @@ function accessLabel(u: any) {
   return u.admin_profile?.name || 'Sem perfil'
 }
 
-async function load() {
+async function load(page = meta.current_page) {
   try {
-    const [userList, profileList] = await Promise.all([
-      useApi<any[]>('/admin/users'),
+    const [userData, profileList] = await Promise.all([
+      useApi<any>(`/admin/users?page=${page}`),
       useApi<any[]>('/admin/profiles'),
     ])
-    users.value = userList
+    users.value = userData.data ?? []
+    meta.current_page = userData.current_page ?? 1
+    meta.last_page = userData.last_page ?? 1
+    meta.total = userData.total ?? users.value.length
     profiles.value = profileList
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar usuários.'
@@ -117,6 +142,7 @@ function openNew() {
   form.password = ''
   form.access = profiles.value[0] ? String(profiles.value[0].id) : 'admin'
   formError.value = ''
+  showPassword.value = false
   showForm.value = true
 }
 
@@ -127,6 +153,7 @@ function openEdit(u: any) {
   form.password = ''
   form.access = u.role === 'admin' ? 'admin' : String(u.admin_profile_id ?? '')
   formError.value = ''
+  showPassword.value = false
   showForm.value = true
 }
 
@@ -153,6 +180,7 @@ async function save() {
     }
     if (form.password) body.password = form.password
 
+    const isEdit = editingId.value !== null
     if (editingId.value) {
       await useApi(`/admin/users/${editingId.value}`, { method: 'PUT', body })
     } else {
@@ -164,6 +192,7 @@ async function save() {
     }
     showForm.value = false
     await load()
+    await dialog.toastSuccess(isEdit ? 'Usuário atualizado.' : 'Usuário criado — credenciais enviadas por e-mail.')
   } catch (e: any) {
     formError.value = e?.data?.message || 'Erro ao salvar.'
   } finally {

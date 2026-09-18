@@ -19,8 +19,8 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <NuxtLink v-if="auth.hasModule('enrollments')" to="/admin/inscricoes" class="btn text-sm py-2">Inscrições</NuxtLink>
-          <NuxtLink v-if="auth.hasModule('courses')" to="/admin/cursos" class="btn-outline text-sm py-2">Cursos</NuxtLink>
-          <NuxtLink v-if="auth.hasModule('citizens')" to="/admin/cidadaos" class="btn-outline text-sm py-2">Cidadãos</NuxtLink>
+          <NuxtLink v-if="auth.hasModule('courses')" to="/admin/cursos" class="btn btn-outline text-sm py-2">Cursos</NuxtLink>
+          <NuxtLink v-if="auth.hasModule('citizens')" to="/admin/cidadaos" class="btn btn-outline text-sm py-2">Cidadãos</NuxtLink>
         </div>
       </div>
 
@@ -85,7 +85,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <NuxtLink v-if="auth.hasModule('companies')" to="/admin/empresas" class="btn text-sm py-2">Empresas</NuxtLink>
-          <NuxtLink v-if="auth.hasModule('job_vacancies')" to="/admin/vagas-emprego" class="btn-outline text-sm py-2">Vagas</NuxtLink>
+          <NuxtLink v-if="auth.hasModule('job_vacancies')" to="/admin/vagas-emprego" class="btn btn-outline text-sm py-2">Vagas</NuxtLink>
         </div>
       </div>
 

@@ -48,6 +48,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" :disabled="loading" @change="load" />
     </div>
   </div>
 </template>
@@ -63,6 +65,21 @@ const entries = ref<any[]>([])
 const loading = ref(true)
 const exporting = ref(false)
 const dialog = useDialog()
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
+
+async function load(page = 1) {
+  loading.value = true
+  try {
+    const params = new URLSearchParams({ form_id: String(formId), page: String(page) })
+    const data = await useApi<any>(`/admin/form-entries?${params}`)
+    entries.value = data.data ?? []
+    meta.current_page = data.current_page ?? 1
+    meta.last_page = data.last_page ?? 1
+    meta.total = data.total ?? entries.value.length
+  } finally {
+    loading.value = false
+  }
+}
 
 const title = computed(() =>
   formTitle.value ? `Respostas: ${formTitle.value}` : 'Respostas do formulário',
@@ -89,10 +106,9 @@ onMounted(async () => {
   try {
     const form = await useApi<any>(`/admin/forms/${formId}`)
     formTitle.value = form.title
-    const data = await useApi<any>(`/admin/form-entries?form_id=${formId}`)
-    entries.value = data.data ?? []
-  } finally {
-    loading.value = false
+  } catch {
+    // título é opcional
   }
+  await load(1)
 })
 </script>

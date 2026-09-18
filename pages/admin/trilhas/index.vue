@@ -63,6 +63,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" @change="load" />
     </div>
   </div>
 </template>
@@ -81,6 +83,7 @@ type TrackRow = {
 }
 
 const rows = ref<TrackRow[]>([])
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
 const loadError = ref('')
 const dialog = useDialog()
 const showForm = ref(false)
@@ -121,10 +124,14 @@ function cancelForm() {
   formError.value = ''
 }
 
-async function load() {
+async function load(page = meta.current_page) {
   loadError.value = ''
   try {
-    rows.value = await useApi<TrackRow[]>('/admin/tracks')
+    const data = await useApi<any>(`/admin/tracks?page=${page}`)
+    rows.value = data.data ?? []
+    meta.current_page = data.current_page ?? 1
+    meta.last_page = data.last_page ?? 1
+    meta.total = data.total ?? rows.value.length
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar trilhas.'
   }

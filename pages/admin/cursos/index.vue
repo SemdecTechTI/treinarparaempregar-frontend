@@ -81,6 +81,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" @change="loadRows" />
     </div>
   </div>
 </template>
@@ -111,6 +113,7 @@ type CourseRow = {
 const loading = ref(true)
 const loadError = ref('')
 const rows = ref<CourseRow[]>([])
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
 const dialog = useDialog()
 const trackMap = ref<Record<string, string>>({})
 
@@ -138,16 +141,19 @@ function courseActions(c: CourseRow): RowActionItem[] {
   ]
 }
 
-async function loadRows() {
+async function loadRows(page = meta.current_page) {
   loading.value = true
   loadError.value = ''
   try {
     const [data, tracks] = await Promise.all([
-      useApi<any>('/admin/courses'),
+      useApi<any>(`/admin/courses?page=${page}`),
       loadTracks(),
     ])
     trackMap.value = Object.fromEntries(tracks.map(t => [t.slug, t.name]))
-    rows.value = (data.courses || []).sort((a: CourseRow, b: CourseRow) => {
+    meta.current_page = data.courses?.current_page ?? 1
+    meta.last_page = data.courses?.last_page ?? 1
+    meta.total = data.courses?.total ?? 0
+    rows.value = (data.courses?.data ?? []).sort((a: CourseRow, b: CourseRow) => {
       const ordemA = a.sort_order ?? 999
       const ordemB = b.sort_order ?? 999
       if (ordemA !== ordemB) return ordemA - ordemB

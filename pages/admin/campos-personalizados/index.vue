@@ -75,6 +75,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" @change="load" />
     </div>
   </div>
 </template>
@@ -83,6 +85,7 @@
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'custom_fields' })
 
 const fields = ref<any[]>([])
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
 const loadError = ref('')
 const dialog = useDialog()
 const showForm = ref(false)
@@ -103,9 +106,13 @@ function typeLabel(type: string) {
   return map[type] || type
 }
 
-async function load() {
+async function load(page = meta.current_page) {
   try {
-    fields.value = await useApi<any[]>('/admin/custom-fields?global=1')
+    const data = await useApi<any>(`/admin/custom-fields?global=1&page=${page}`)
+    fields.value = data.data ?? []
+    meta.current_page = data.current_page ?? 1
+    meta.last_page = data.last_page ?? 1
+    meta.total = data.total ?? fields.value.length
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar campos.'
   }

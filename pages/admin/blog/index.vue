@@ -47,6 +47,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" @change="load" />
     </div>
   </div>
 </template>
@@ -57,6 +59,7 @@ definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'blog' })
 const posts = ref<any[]>([])
 const loadError = ref('')
 const dialog = useDialog()
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
 
 function formatDate(d: string | null) {
   if (!d) return '—'
@@ -68,9 +71,13 @@ function openPublic(post: any) {
   window.open(`/blog/${post.slug}`, '_blank')
 }
 
-async function load() {
+async function load(page = meta.current_page) {
   try {
-    posts.value = await useApi<any[]>('/admin/blog-posts')
+    const data = await useApi<any>(`/admin/blog-posts?page=${page}`)
+    posts.value = data.data ?? []
+    meta.current_page = data.current_page ?? 1
+    meta.last_page = data.last_page ?? 1
+    meta.total = data.total ?? posts.value.length
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar artigos.'
   }

@@ -10,9 +10,9 @@
         type="search"
         placeholder="Buscar por título, slug ou ID..."
         class="input-modern flex-1 min-w-[220px]"
-        @keyup.enter="load"
+        @keyup.enter="load(1)"
       />
-      <button type="button" class="btn text-sm py-2" @click="load">Buscar</button>
+      <button type="button" class="btn text-sm py-2" @click="load(1)">Buscar</button>
       <NuxtLink to="/admin/formularios/respostas" class="btn btn-outline text-sm py-2">Todas as respostas</NuxtLink>
       <AdminExportButton endpoint="/admin/exports/forms" filename="formularios" />
     </div>
@@ -53,6 +53,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="meta" @change="load" />
     </div>
   </div>
 </template>
@@ -69,6 +71,7 @@ const rows = ref<any[]>([])
 const loading = ref(true)
 const loadError = ref('')
 const search = ref('')
+const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
 
 const statusLabels: Record<string, string> = {
   draft: 'Rascunho',
@@ -102,12 +105,17 @@ async function copyLink(slug: string) {
   }
 }
 
-async function load() {
+async function load(page = meta.current_page) {
   loading.value = true
   loadError.value = ''
   try {
-    const q = search.value.trim() ? `?search=${encodeURIComponent(search.value.trim())}` : ''
-    rows.value = await useApi<any[]>(`/admin/forms${q}`)
+    const params = new URLSearchParams({ page: String(page) })
+    if (search.value.trim()) params.set('search', search.value.trim())
+    const data = await useApi<any>(`/admin/forms?${params}`)
+    rows.value = data.data ?? []
+    meta.current_page = data.current_page ?? 1
+    meta.last_page = data.last_page ?? 1
+    meta.total = data.total ?? rows.value.length
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar formulários.'
   } finally {

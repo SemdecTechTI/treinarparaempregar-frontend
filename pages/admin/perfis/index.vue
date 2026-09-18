@@ -80,6 +80,8 @@
           </tr>
         </tbody>
       </table>
+
+      <AdminPagination :meta="pageMeta" @change="load" />
     </div>
   </div>
 </template>
@@ -102,6 +104,7 @@ interface AdminProfile {
 
 const dialog = useDialog()
 const profiles = ref<AdminProfile[]>([])
+const pageMeta = reactive({ current_page: 1, last_page: 1, total: 0 })
 const modules = ref<AdminModule[]>([])
 const loadError = ref('')
 const showForm = ref(false)
@@ -119,14 +122,17 @@ function moduleLabel(key: string) {
   return modules.value.find(m => m.key === key)?.label ?? key
 }
 
-async function load() {
+async function load(page = pageMeta.current_page) {
   try {
-    const [meta, list] = await Promise.all([
+    const [metaRes, list] = await Promise.all([
       useApi<{ modules: AdminModule[] }>('/admin/profiles/meta'),
-      useApi<AdminProfile[]>('/admin/profiles'),
+      useApi<any>(`/admin/profiles?page=${page}`),
     ])
-    modules.value = meta.modules
-    profiles.value = list
+    modules.value = metaRes.modules
+    profiles.value = list.data ?? []
+    pageMeta.current_page = list.current_page ?? 1
+    pageMeta.last_page = list.last_page ?? 1
+    pageMeta.total = list.total ?? profiles.value.length
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar perfis.'
   }

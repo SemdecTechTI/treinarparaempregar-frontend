@@ -1,5 +1,5 @@
 <template>
-  <div class="inline-flex justify-end" ref="rootRef">
+  <div class="flex w-full justify-end" ref="rootRef">
     <button
       ref="triggerRef"
       type="button"
