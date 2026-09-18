@@ -2,7 +2,7 @@
   <div v-if="showAdmin" class="min-h-screen flex flex-col bg-gray-100">
     <PrefeituraBarTop />
     <!-- Barra superior mobile com botão de menu -->
-    <header class="lg:hidden bg-[#1a2d4a] text-white flex items-center gap-3 px-4 h-14 shrink-0">
+    <header class="hidden max-lg:flex bg-[#1a2d4a] text-white items-center gap-3 px-4 h-14 shrink-0">
       <button
         type="button"
         class="-ml-2 p-2 rounded hover:bg-white/10"

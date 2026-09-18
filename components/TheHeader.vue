@@ -117,7 +117,7 @@
 
           <button
             type="button"
-            class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl transition-colors"
+            class="hidden max-lg:flex w-10 h-10 items-center justify-center rounded-xl transition-colors"
             :class="lightNav ? 'text-white hover:bg-white/20' : 'text-primary hover:bg-primary/10'"
             @click="mobileOpen = !mobileOpen"
             aria-label="Menu"
