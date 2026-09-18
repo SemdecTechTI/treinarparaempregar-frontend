@@ -50,10 +50,16 @@ export async function ensureSanctumCsrf() {
   })
 }
 
-/** Rotas públicas — sem cookies (evita CORS estrito em leituras) */
+/** Rotas públicas. GET sem cookies (evita CORS estrito em leituras).
+ *  POST/PUT/PATCH/DELETE precisam da sessão + X-XSRF-TOKEN — senão o Laravel
+ *  compara o header CSRF com uma sessão vazia e responde "CSRF token mismatch". */
 export async function useApiPublic<T>(path: string, options: Parameters<typeof $fetch<T>>[1] = {}) {
+  const method = String(options.method || (options.body ? 'POST' : 'GET')).toUpperCase()
+  const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(method)
+
   return $fetch<T>(path, {
     baseURL: apiBaseUrl(),
+    ...(isMutation ? { credentials: 'include' as const } : {}),
     ...options,
     headers: apiHeaders(options.headers as Record<string, string> | undefined),
   })

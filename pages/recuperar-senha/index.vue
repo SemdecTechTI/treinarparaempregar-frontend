@@ -47,7 +47,8 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    const data = await useApiPublic<{ message: string }>('/auth/forgot-password', {
+    await ensureSanctumCsrf()
+    const data = await useApi<{ message: string }>('/auth/forgot-password', {
       method: 'POST',
       body: { email: email.value },
     })
