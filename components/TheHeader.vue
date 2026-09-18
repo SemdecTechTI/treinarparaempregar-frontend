@@ -169,9 +169,10 @@ const mobileOpen = ref(false)
 const scrolled = ref(false)
 
 const isHome = computed(() => route.path === '/')
-const lightNav = computed(() => isHome.value && !scrolled.value)
+const useLightHeader = computed(() => scrolled.value || mobileOpen.value)
+const lightNav = computed(() => isHome.value && !useLightHeader.value)
 const headerClass = computed(() => {
-  if (scrolled.value) return 'bg-white/95 backdrop-blur-xl shadow-soft border-b border-gray-100/80'
+  if (useLightHeader.value) return 'bg-white/95 backdrop-blur-xl shadow-soft border-b border-gray-100/80'
   if (isHome.value) return 'bg-transparent'
   return 'bg-white/95 backdrop-blur-xl border-b border-gray-100/60'
 })
@@ -179,6 +180,7 @@ const headerClass = computed(() => {
 const onScroll = () => { scrolled.value = window.scrollY > 20 }
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
+watch(() => route.fullPath, () => { mobileOpen.value = false })
 
 const navLinks = [
   { to: '/quem-somos', label: 'Quem somos' },
