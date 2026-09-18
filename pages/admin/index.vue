@@ -66,9 +66,13 @@
               v-for="item in data.enrollments.recent"
               :key="item.id"
               :to="`/admin/inscricoes/${item.id}`"
-              class="flex justify-between items-center py-2 border-b last:border-0 hover:bg-gray-50 -mx-2 px-2 rounded"
+              class="flex justify-between items-start gap-3 py-2 border-b last:border-0 hover:bg-gray-50 -mx-2 px-2 rounded"
             >
-              <span class="text-sm">{{ item.citizen }}</span>
+              <div class="min-w-0">
+                <p class="text-sm font-medium truncate">{{ item.citizen }}</p>
+                <p class="text-xs text-muted truncate">{{ item.course || '—' }}</p>
+                <p class="text-xs text-muted">{{ formatDateTime(item.created_at) }}</p>
+              </div>
               <EnrollmentStatusBadge :status="item.status" />
             </NuxtLink>
           </div>
@@ -147,6 +151,17 @@ const headerTitle = computed(() => {
 
 const hasAnySection = computed(() => !!(data.value?.enrollments || data.value?.capture))
 const maxCurso = computed(() => Math.max(...(data.value?.enrollments?.by_course?.map((c: any) => c.total) || [1]), 1))
+
+function formatDateTime(value?: string) {
+  if (!value) return '—'
+  return new Date(value).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 onMounted(async () => {
   data.value = await useApi('/admin/dashboard')

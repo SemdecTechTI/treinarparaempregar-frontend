@@ -15,12 +15,18 @@
       <div>
         <label class="form-label">Email</label>
         <input v-model="form.email" type="email" required class="input-modern" />
+        <p v-if="existingAccount?.exists && existingAccount.staff" class="text-xs text-red-600 mt-1.5">
+          Este e-mail já tem acesso ao painel.
+        </p>
+        <p v-else-if="existingAccount?.exists" class="text-xs text-accent mt-1.5">
+          Conta encontrada: {{ existingAccount.name }}. O acesso será concedido à conta atual, sem alterar a senha.
+        </p>
       </div>
-      <div>
+      <div v-if="editingId || !existingAccount?.exists">
         <label class="form-label">Senha {{ editingId ? '(deixe em branco para manter)' : '' }}</label>
         <div class="flex gap-2">
           <div class="relative flex-1">
-            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input-modern pr-10" :required="!editingId" autocomplete="new-password" />
+            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input-modern pr-10" :required="!editingId && !existingAccount?.exists" autocomplete="new-password" />
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'" @click="showPassword = !showPassword">
               <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L3 3m6.88 6.88L21 21"/></svg>
               <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -28,7 +34,7 @@
           </div>
           <button type="button" class="btn btn-outline text-sm py-2 whitespace-nowrap" @click="generatePassword">Gerar</button>
         </div>
-        <p v-if="!editingId" class="text-xs text-muted mt-1.5">A senha será enviada por e-mail ao usuário ao cadastrar.</p>
+        <p v-if="!editingId" class="text-xs text-muted mt-1.5">A senha será enviada por e-mail. Se a pessoa já tem conta no site, use o mesmo e-mail e deixe a senha em branco.</p>
       </div>
       <div>
         <label class="form-label">Perfil</label>
@@ -45,7 +51,7 @@
       </div>
       <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-3">
-        <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving" @click="save" />
+        <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving || (!!existingAccount?.staff && !editingId)" @click="save" />
         <AdminActionButton label="Cancelar" variant="outline" size="md" @click="cancelForm" />
       </div>
     </AdminFormPanel>
@@ -71,7 +77,7 @@
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(u) },
-                { label: 'Remover', danger: true, onClick: () => remove(u) },
+                { label: 'Remover acesso', danger: true, onClick: () => remove(u) },
               ]" />
             </td>
           </tr>
@@ -96,6 +102,8 @@ const editingId = ref<number | null>(null)
 const saving = ref(false)
 const formError = ref('')
 const showPassword = ref(false)
+const existingAccount = ref<{ exists: boolean, staff?: boolean, name?: string } | null>(null)
+let lookupTimer: ReturnType<typeof setTimeout> | null = null
 
 function generatePassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*'
@@ -118,6 +126,35 @@ function accessLabel(u: any) {
   if (u.role === 'admin') return 'Administrador'
   return u.admin_profile?.name || 'Sem perfil'
 }
+
+async function lookupEmail(email: string) {
+  try {
+    const data = await useApi<{ exists: boolean, staff?: boolean, name?: string }>(
+      `/admin/users/lookup?email=${encodeURIComponent(email)}`,
+    )
+    if (form.email.trim().toLowerCase() !== email.trim().toLowerCase()) return
+    existingAccount.value = data
+    if (data.exists && !data.staff && data.name && !form.name.trim()) {
+      form.name = data.name
+    }
+    if (data.exists && data.staff) {
+      formError.value = 'Este e-mail já tem acesso ao painel.'
+    } else if (formError.value === 'Este e-mail já tem acesso ao painel.') {
+      formError.value = ''
+    }
+  } catch {
+    existingAccount.value = null
+  }
+}
+
+watch(() => form.email, (email) => {
+  existingAccount.value = null
+  if (editingId.value) return
+  const trimmed = email.trim()
+  if (!trimmed.includes('@')) return
+  if (lookupTimer) clearTimeout(lookupTimer)
+  lookupTimer = setTimeout(() => lookupEmail(trimmed), 400)
+})
 
 async function load(page = meta.current_page) {
   try {
@@ -142,6 +179,7 @@ function openNew() {
   form.password = ''
   form.access = profiles.value[0] ? String(profiles.value[0].id) : 'admin'
   formError.value = ''
+  existingAccount.value = null
   showPassword.value = false
   showForm.value = true
 }
@@ -153,6 +191,7 @@ function openEdit(u: any) {
   form.password = ''
   form.access = u.role === 'admin' ? 'admin' : String(u.admin_profile_id ?? '')
   formError.value = ''
+  existingAccount.value = null
   showPassword.value = false
   showForm.value = true
 }
@@ -181,18 +220,33 @@ async function save() {
     if (form.password) body.password = form.password
 
     const isEdit = editingId.value !== null
+    await ensureSanctumCsrf()
     if (editingId.value) {
       await useApi(`/admin/users/${editingId.value}`, { method: 'PUT', body })
+      showForm.value = false
+      await load()
+      await dialog.toastSuccess('Usuário atualizado.')
     } else {
-      if (!form.password) {
+      if (existingAccount.value?.staff) {
+        formError.value = 'Este e-mail já tem acesso ao painel.'
+        return
+      }
+      if (!existingAccount.value?.exists && !form.password) {
         formError.value = 'Senha é obrigatória para novo usuário.'
         return
       }
-      await useApi('/admin/users', { method: 'POST', body })
+      if (existingAccount.value?.exists) {
+        delete body.password
+      }
+      const created = await useApi<{ promoted?: boolean }>('/admin/users', { method: 'POST', body })
+      showForm.value = false
+      await load()
+      await dialog.toastSuccess(
+        created?.promoted
+          ? 'Acesso concedido. A pessoa continua com a mesma senha e receberá um e-mail.'
+          : 'Usuário criado — credenciais enviadas por e-mail.',
+      )
     }
-    showForm.value = false
-    await load()
-    await dialog.toastSuccess(isEdit ? 'Usuário atualizado.' : 'Usuário criado — credenciais enviadas por e-mail.')
   } catch (e: any) {
     formError.value = e?.data?.message || 'Erro ao salvar.'
   } finally {
@@ -202,19 +256,24 @@ async function save() {
 
 async function remove(u: any) {
   if (u.id === auth.user?.id) {
-    await dialog.alert('Você não pode remover sua própria conta.', 'Aviso', 'warning')
+    await dialog.alert('Você não pode remover o próprio acesso.', 'Aviso', 'warning')
     return
   }
-  if (!await dialog.confirm(`Remover usuário "${u.name}"?`, {
-    title: 'Remover usuário',
-    confirmText: 'Remover',
-    danger: true,
-  })) return
+  if (!await dialog.confirm(
+    `"${u.name}" deixa de acessar o painel e passa a ser cidadão. A conta e o login são mantidos.`,
+    {
+      title: 'Remover acesso',
+      confirmText: 'Remover acesso',
+      danger: true,
+    },
+  )) return
   try {
+    await ensureSanctumCsrf()
     await useApi(`/admin/users/${u.id}`, { method: 'DELETE' })
     await load()
+    await dialog.toastSuccess('Acesso removido. A pessoa agora aparece em Cidadãos.')
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.error(e?.data?.message || 'Não foi possível remover o acesso.')
   }
 }
 
