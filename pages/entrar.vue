@@ -37,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { homeForUser, safeInternalPath } from '~/utils/navigation'
+
 definePageMeta({ middleware: 'guest' })
 
 usePageSeo({
@@ -58,12 +60,8 @@ async function submit() {
   error.value = ''
   try {
     await auth.login(email.value, password.value, route.query.origem as string)
-    const redirect = route.query.redirect as string
-    if (auth.isStaff && !redirect) {
-      await navigateTo('/admin')
-    } else {
-      await navigateTo(redirect || '/conta')
-    }
+    const redirect = safeInternalPath(route.query.redirect)
+    await navigateTo(redirect || homeForUser(!!auth.isStaff))
   } catch (e: any) {
     error.value = e?.data?.message || 'Email ou senha inválidos.'
   } finally {

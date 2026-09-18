@@ -1,4 +1,6 @@
-export default defineNuxtRouteMiddleware(async () => {
+import { homeForUser, safeInternalPath } from '~/utils/navigation'
+
+export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
   if (!auth.initialized) {
     await auth.fetchUser()
@@ -6,5 +8,6 @@ export default defineNuxtRouteMiddleware(async () => {
 
   if (!auth.isLoggedIn) return
 
-  return navigateTo(auth.isStaff ? '/admin' : '/conta')
+  const redirect = safeInternalPath(to.query.redirect)
+  return navigateTo(redirect || homeForUser(!!auth.isStaff))
 })

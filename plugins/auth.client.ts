@@ -1,3 +1,5 @@
+import { homeForUser, safeInternalPath } from '~/utils/navigation'
+
 const GUEST_ROUTE_PREFIXES = ['/entrar', '/cadastrar', '/recuperar-senha']
 
 function isGuestRoute(path: string) {
@@ -13,9 +15,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   await auth.fetchUser()
 
-  const path = router.currentRoute.value.path
-  if (auth.isLoggedIn && isGuestRoute(path)) {
-    // runWithContext restaura o contexto do Nuxt para a navegação e seus middlewares.
-    await nuxtApp.runWithContext(() => navigateTo(auth.isStaff ? '/admin' : '/conta'))
+  const route = router.currentRoute.value
+  if (auth.isLoggedIn && isGuestRoute(route.path)) {
+    const redirect = safeInternalPath(route.query.redirect)
+    await nuxtApp.runWithContext(() => navigateTo(redirect || homeForUser(!!auth.isStaff)))
   }
 })

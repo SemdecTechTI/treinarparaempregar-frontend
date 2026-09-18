@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { spawnSync } from 'node:child_process'
 
 /**
  * OKD: o secret nuxt-env costuma vir como arquivo .env (o `nuxt dev` lia sozinho).
@@ -43,10 +44,44 @@ for (const candidate of envCandidates) {
   }
 }
 
+const nodeMajor = Number(process.versions.node.split('.')[0])
+if (nodeMajor < 20) {
+  console.error(`Node 20+ é obrigatório (atual: ${process.version}). Rode: nvm use 20 && npm run start`)
+  process.exit(1)
+}
+
+const inOpenShift = !!(process.env.OPENSHIFT_BUILD_NAME || process.env.KUBERNETES_SERVICE_HOST)
 process.env.NITRO_HOST ||= '0.0.0.0'
 process.env.HOST ||= process.env.NITRO_HOST
-process.env.NITRO_PORT ||= process.env.PORT || '8080'
+process.env.NITRO_PORT ||= process.env.PORT || (inOpenShift ? '8080' : '3002')
 process.env.PORT ||= process.env.NITRO_PORT
 
+// Dev usa Vite proxy em /api. O `nuxt start` não tem proxy — aponta direto no Laravel.
+const apiBase = process.env.NUXT_PUBLIC_API_BASE || '/api'
+const proxyTarget = process.env.NUXT_PROXY_API_TARGET?.replace(/\/$/, '')
+if (apiBase === '/api' && proxyTarget) {
+  process.env.NUXT_PUBLIC_API_BASE = `${proxyTarget}/api`
+  console.log(`[start] NUXT_PUBLIC_API_BASE=/api → ${process.env.NUXT_PUBLIC_API_BASE}`)
+}
+
 const server = resolve(process.cwd(), '.output/server/index.mjs')
+if (!existsSync(server)) {
+  console.log('[start] .output ausente. Rodando npm run build...')
+  const build = spawnSync('npm', ['run', 'build'], {
+    cwd: process.cwd(),
+    stdio: 'inherit',
+    env: process.env,
+    shell: true,
+  })
+  if (build.status !== 0) {
+    process.exit(build.status ?? 1)
+  }
+}
+
+if (!existsSync(server)) {
+  console.error('[start] Build terminou sem gerar .output/server/index.mjs')
+  process.exit(1)
+}
+
+console.log(`[start] Node ${process.version}  http://${process.env.NITRO_HOST}:${process.env.NITRO_PORT}`)
 await import(pathToFileURL(server).href)
