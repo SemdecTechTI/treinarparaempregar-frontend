@@ -9,7 +9,7 @@
       </div>
 
       <div>
-        <label class="form-label">Resumo (excerpt)</label>
+        <label class="form-label">Resumo</label>
         <textarea v-model="form.excerpt" rows="2" class="input-modern" placeholder="Texto curto para cards e listagens" />
       </div>
 
