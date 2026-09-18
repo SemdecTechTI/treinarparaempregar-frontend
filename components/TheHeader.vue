@@ -97,7 +97,10 @@
                 ><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
               <div class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl py-2 shadow-card border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                <NuxtLink to="/conta" class="nav-dropdown-link">Minha Conta</NuxtLink>
+                <NuxtLink to="/conta" class="nav-dropdown-link">Minha conta</NuxtLink>
+                <NuxtLink to="/conta/perfil" class="nav-dropdown-link">Perfil</NuxtLink>
+                <NuxtLink to="/conta/cursos" class="nav-dropdown-link">Meus cursos</NuxtLink>
+                <NuxtLink to="/conta/seguranca" class="nav-dropdown-link">Senha e e-mail</NuxtLink>
                 <button type="button" @click="auth.logout()" class="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-lg">
                   Sair
                 </button>
@@ -148,8 +151,15 @@
           >
             Cadastre sua vaga
           </NuxtLink>
+          <template v-if="auth.isLoggedIn">
+            <NuxtLink to="/conta" class="nav-link nav-link-light" @click="mobileOpen = false">Minha conta</NuxtLink>
+            <NuxtLink to="/conta/perfil" class="nav-link nav-link-light" @click="mobileOpen = false">Perfil</NuxtLink>
+            <NuxtLink to="/conta/cursos" class="nav-link nav-link-light" @click="mobileOpen = false">Meus cursos</NuxtLink>
+            <NuxtLink to="/conta/seguranca" class="nav-link nav-link-light" @click="mobileOpen = false">Senha e e-mail</NuxtLink>
+            <button type="button" class="nav-link nav-link-light text-left text-red-600" @click="auth.logout()">Sair</button>
+          </template>
           <NuxtLink
-            v-if="!auth.isLoggedIn"
+            v-else
             to="/entrar"
             class="nav-link nav-link-light text-accent font-semibold"
             @click="mobileOpen = false"

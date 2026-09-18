@@ -47,6 +47,22 @@ export const DEFICIENCIAS = [
   'Outro',
 ] as const
 
+export const UFS = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
+  'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
+  'SP', 'SE', 'TO',
+] as const
+
+export function toDateInput(value?: string | null): string {
+  if (!value) return ''
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/)
+  return match?.[1] ?? ''
+}
+
+export function boolToSimNao(value: unknown): 'sim' | 'nao' {
+  return value === true || value === 1 || value === '1' || value === 'sim' ? 'sim' : 'nao'
+}
+
 export function ageFromBirthDate(birthDate?: string | null): number | null {
   if (!birthDate) return null
   const birth = new Date(birthDate.includes('T') ? birthDate : `${birthDate}T12:00:00`)

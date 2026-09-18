@@ -1,94 +1,88 @@
 <template>
-  <div class="container mx-auto px-4 py-12 max-w-4xl">
-    <h1 class="mb-8">Minha Conta</h1>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-primary mb-4">Meu perfil</h2>
-        <dl class="space-y-2 text-sm">
-          <div><dt class="text-muted">Nome</dt><dd>{{ data?.user?.name }}</dd></div>
-          <div><dt class="text-muted">Email</dt><dd>{{ data?.user?.email }}</dd></div>
-          <div><dt class="text-muted">Telefone</dt><dd>{{ data?.user?.phone || '—' }}</dd></div>
-          <div><dt class="text-muted">CPF</dt><dd>{{ data?.user?.cpf || '—' }}</dd></div>
-        </dl>
-      </div>
-
-      <div class="lg:col-span-2 space-y-8">
-        <section>
-          <h2 class="text-lg font-semibold text-primary mb-4">Meus cursos</h2>
-          <div v-if="!data?.course_enrollments?.length" class="text-muted text-sm">
-            Nenhuma inscrição em cursos.
-            <NuxtLink to="/cursos" class="text-accent">Explorar catálogo</NuxtLink>
-          </div>
-          <div class="space-y-3">
-            <div
-              v-for="e in data?.course_enrollments"
-              :key="e.id"
-              class="bg-white rounded-lg shadow p-4"
-            >
-              <div class="flex justify-between items-start gap-4">
-                <div class="min-w-0">
-                  <p class="font-medium">{{ e.course?.title }}</p>
-                  <p class="text-xs text-muted">
-                    {{ trilhaLabel(e.course?.track) }} · {{ modalidadeLabel(e.course?.modality) }}
-                  </p>
-                </div>
-                <div class="flex items-center gap-3 shrink-0">
-                  <EnrollmentStatusBadge :status="e.status" />
-                  <NuxtLink
-                    v-if="e.course?.slug && e.course?.modality !== 'online'"
-                    :to="`/cursos/${e.course.slug}`"
-                    class="text-sm text-accent whitespace-nowrap"
-                  >
-                    Ver curso →
-                  </NuxtLink>
-                </div>
-              </div>
-              <template v-if="e.course?.modality === 'online'">
-                <ProgressBar :percent="e.progress_percent || 0" class="mt-3 mb-3" />
-                <NuxtLink
-                  v-if="e.course?.slug"
-                  :to="`/cursos/${e.course.slug}`"
-                  class="text-sm text-accent"
-                >
-                  Assistir vídeos →
-                </NuxtLink>
-              </template>
-            </div>
-          </div>
-        </section>
-      </div>
+  <div class="space-y-8">
+    <div v-if="loading" class="grid sm:grid-cols-3 gap-4">
+      <div v-for="n in 3" :key="n" class="skeleton h-28 rounded-2xl" />
     </div>
+
+    <template v-else>
+      <section class="grid sm:grid-cols-3 gap-4">
+        <div class="card-flat p-5">
+          <p class="text-sm text-muted">Inscrições</p>
+          <p class="text-3xl font-semibold text-primary mt-1">{{ enrollments.length }}</p>
+          <p class="text-xs text-muted mt-1">cursos na sua conta</p>
+        </div>
+        <div class="card-flat p-5">
+          <p class="text-sm text-muted">Em andamento</p>
+          <p class="text-3xl font-semibold text-accent mt-1">{{ inProgressCount }}</p>
+          <p class="text-xs text-muted mt-1">ativos ou em análise</p>
+        </div>
+        <div class="card-flat p-5">
+          <p class="text-sm text-muted">Concluídos</p>
+          <p class="text-3xl font-semibold text-primary mt-1">{{ completedCount }}</p>
+          <p class="text-xs text-muted mt-1">com certificado ou finalizados</p>
+        </div>
+      </section>
+
+      <section class="grid md:grid-cols-3 gap-4">
+        <NuxtLink to="/conta/perfil" class="card-flat p-5 hover:border-primary/30 transition-colors no-underline group">
+          <p class="font-semibold text-primary group-hover:text-accent">Editar perfil</p>
+          <p class="text-sm text-muted mt-1">Nome, telefone, endereço e dados cadastrais.</p>
+        </NuxtLink>
+        <NuxtLink to="/conta/seguranca" class="card-flat p-5 hover:border-primary/30 transition-colors no-underline group">
+          <p class="font-semibold text-primary group-hover:text-accent">Senha e e-mail</p>
+          <p class="text-sm text-muted mt-1">Troque a senha ou o e-mail de acesso.</p>
+        </NuxtLink>
+        <NuxtLink to="/conta/cursos" class="card-flat p-5 hover:border-primary/30 transition-colors no-underline group">
+          <p class="font-semibold text-primary group-hover:text-accent">Meus cursos</p>
+          <p class="text-sm text-muted mt-1">Veja o progresso e acesse cada turma.</p>
+        </NuxtLink>
+      </section>
+
+      <section>
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <h2 class="text-lg font-semibold text-primary">Cursos recentes</h2>
+          <NuxtLink v-if="enrollments.length" to="/conta/cursos" class="text-sm text-accent font-semibold">
+            Ver todos →
+          </NuxtLink>
+        </div>
+
+        <div v-if="!enrollments.length" class="card-flat p-8 text-center">
+          <p class="text-muted">Você ainda não tem inscrições.</p>
+          <NuxtLink to="/cursos" class="btn mt-4">Explorar catálogo</NuxtLink>
+        </div>
+
+        <div v-else class="space-y-3">
+          <AccountCourseCard
+            v-for="item in recentEnrollments"
+            :key="item.id"
+            :enrollment="item"
+          />
+        </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { trackLabel, loadTracks } from '~/utils/tracks'
-
-definePageMeta({ middleware: 'auth' })
+import { useCitizenDashboard } from '~/composables/useCitizenDashboard'
+import AccountCourseCard from '~/components/account/AccountCourseCard.vue'
 
 usePageSeo({
   title: 'Minha conta',
-  description: 'Gerencie suas inscrições e acesse seus cursos no Treinar para Empregar.',
+  description: 'Gerencie seu perfil, senha, e-mail e cursos no Treinar para Empregar.',
   path: '/conta',
   noindex: true,
 })
 
-const data = ref<any>(null)
+const { enrollments, loading, refresh } = useCitizenDashboard()
 
-function trilhaLabel(trilha?: string) {
-  return trackLabel(trilha)
-}
+const inProgressCount = computed(() =>
+  enrollments.value.filter(e => ['pendente', 'em_analise', 'repassado_parceiro', 'confirmado_parceiro', 'em_andamento'].includes(e.status)).length,
+)
 
-function modalidadeLabel(modalidade?: string) {
-  if (modalidade === 'online') return 'Online'
-  if (modalidade === 'ead') return 'EAD'
-  if (modalidade === 'presencial') return 'Presencial'
-  return modalidade || '—'
-}
+const completedCount = computed(() => enrollments.value.filter(e => e.status === 'concluido').length)
 
-onMounted(async () => {
-  await loadTracks()
-  data.value = await useApi('/dashboard')
-})
+const recentEnrollments = computed(() => enrollments.value.slice(0, 3))
+
+onMounted(() => refresh())
 </script>

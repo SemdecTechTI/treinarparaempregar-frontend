@@ -4,6 +4,7 @@ export interface User {
   email: string
   cpf?: string
   role: string
+  social_name?: string | null
   birth_date?: string
   gender?: string
   allowed_modules?: string[]
@@ -15,6 +16,21 @@ export interface User {
   city?: string
   state?: string
   complement?: string
+  rg?: string
+  rg_issue_date?: string
+  rg_issuer?: string
+  birthplace?: string
+  mother_name?: string
+  father_name?: string | null
+  sexual_orientation?: string
+  gender_identity?: string
+  race?: string
+  education?: string
+  has_disability?: boolean
+  disability_types?: string[]
+  registered_cadunico?: boolean
+  receives_social_benefit?: boolean
+  social_benefit_name?: string | null
 }
 
 function ageFromBirthDate(birthDate?: string | null): number | null {
