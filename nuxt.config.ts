@@ -9,11 +9,14 @@ export default defineNuxtConfig({
     },
     display: 'swap',
   },
+  // Defaults só de build/dev. Em produção o Nitro lê NUXT_* do process.env
+  // (secret nuxt-env no OKD). Não usar process.env aqui — o S2I buildia sem o secret
+  // e gravava '/api' no bundle.
   runtimeConfig: {
-    apiTarget: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8082',
+    apiTarget: 'http://localhost:8082',
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3002',
+      apiBase: '/api',
+      siteUrl: 'http://localhost:3002',
     },
   },
   vite: {
