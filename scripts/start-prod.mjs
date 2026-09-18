@@ -56,12 +56,21 @@ process.env.HOST ||= process.env.NITRO_HOST
 process.env.NITRO_PORT ||= process.env.PORT || (inOpenShift ? '8080' : '3002')
 process.env.PORT ||= process.env.NITRO_PORT
 
-// Dev usa Vite proxy em /api. O `nuxt start` não tem proxy — aponta direto no Laravel.
+// Mesma origem: browser chama /api no front; o Nitro (server/middleware/api-proxy.ts) encaminha ao Laravel.
 const apiBase = process.env.NUXT_PUBLIC_API_BASE || '/api'
-const proxyTarget = process.env.NUXT_PROXY_API_TARGET?.replace(/\/$/, '')
-if (apiBase === '/api' && proxyTarget) {
-  process.env.NUXT_PUBLIC_API_BASE = `${proxyTarget}/api`
-  console.log(`[start] NUXT_PUBLIC_API_BASE=/api → ${process.env.NUXT_PUBLIC_API_BASE}`)
+const proxyTarget = (process.env.NUXT_PROXY_API_TARGET || process.env.NUXT_API_TARGET || '').replace(/\/$/, '')
+if (proxyTarget) {
+  process.env.NUXT_PROXY_API_TARGET = proxyTarget
+  process.env.NUXT_API_TARGET ||= proxyTarget
+}
+
+if (apiBase === '/api' || apiBase.startsWith('/')) {
+  if (!proxyTarget) {
+    console.warn('[start] NUXT_PUBLIC_API_BASE=/api sem NUXT_PROXY_API_TARGET — /api vai 502')
+  }
+  else {
+    console.log(`[start] proxy /api /sanctum /storage → ${proxyTarget}`)
+  }
 }
 
 const server = resolve(process.cwd(), '.output/server/index.mjs')

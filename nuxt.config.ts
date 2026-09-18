@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   // (secret nuxt-env no OKD). Não usar process.env aqui — o S2I buildia sem o secret
   // e gravava '/api' no bundle.
   runtimeConfig: {
+    // SSR chama o Laravel direto. Em runtime: NUXT_API_TARGET ou NUXT_PROXY_API_TARGET.
     apiTarget: 'http://localhost:8082',
     public: {
       apiBase: '/api',
