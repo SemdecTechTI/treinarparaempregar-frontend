@@ -203,21 +203,115 @@
 
 <script setup lang="ts">
 import { loadTracks } from '~/utils/tracks'
+import { resolveMediaUrl } from '~/utils/media'
+import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_NAME } from '~/utils/site'
 
 const route = useRoute()
 const slug = route.params.slug as string
 const auth = useAuthStore()
+const config = useRuntimeConfig()
+const siteUrl = (config.public.siteUrl as string).replace(/\/$/, '')
 
-const course = ref<any>(null)
-const videos = ref<any[]>([])
-const customFields = ref<any[]>([])
-const userEnrollment = ref<any>(null)
-const loading = ref(true)
+type CoursePagePayload = {
+  course: any
+  custom_fields: any[]
+  user_enrollment: any
+  videos?: any[]
+  trilhaMap: Record<string, string>
+}
+
+async function fetchCoursePage(): Promise<CoursePagePayload> {
+  const tracksPromise = loadTracks()
+  const publicPromise = useApiPublic<Omit<CoursePagePayload, 'trilhaMap'>>(`/cursos/${slug}`)
+  const sessionPromise = import.meta.client
+    ? useApi<Omit<CoursePagePayload, 'trilhaMap'>>(`/cursos/${slug}`).catch((e: any) => {
+        const status = e?.statusCode || e?.status || e?.response?.status
+        if (status === 404) throw e
+        return null
+      })
+    : Promise.resolve(null)
+
+  try {
+    const [tracks, sessionPayload, publicPayload] = await Promise.all([
+      tracksPromise,
+      sessionPromise,
+      publicPromise,
+    ])
+    const payload = sessionPayload || publicPayload
+    return {
+      course: payload.course,
+      custom_fields: payload.custom_fields || [],
+      user_enrollment: payload.user_enrollment,
+      videos: payload.videos || [],
+      trilhaMap: Object.fromEntries(tracks.map(t => [t.slug, t.name])),
+    }
+  } catch (e: any) {
+    const status = e?.statusCode || e?.status || e?.response?.status
+    if (status === 404) {
+      throw createError({ statusCode: 404, statusMessage: 'Curso não encontrado', fatal: true })
+    }
+    throw e
+  }
+}
+
+const { data, pending: loading, refresh: load } = await useAsyncData(`curso-${slug}`, fetchCoursePage)
+
+if (!data.value?.course) {
+  throw createError({ statusCode: 404, statusMessage: 'Curso não encontrado', fatal: true })
+}
+
+onMounted(() => {
+  if (auth.isLoggedIn) load()
+})
+
+const course = computed(() => data.value?.course ?? null)
+const videos = computed(() => data.value?.videos ?? [])
+const customFields = computed(() => data.value?.custom_fields ?? [])
+const userEnrollment = computed(() => data.value?.user_enrollment ?? null)
 const showEnrollmentModal = ref(false)
 const showVagasModal = ref(false)
 
-const trilhaLabels = ref<Record<string, string>>({})
-const trilhaLabel = computed(() => trilhaLabels.value[course.value?.track] || course.value?.track)
+const trilhaLabel = computed(() => data.value?.trilhaMap?.[course.value?.track] || course.value?.track)
+
+watch(course, (c) => {
+  if (!c) return
+  const description = c.summary || c.description?.slice(0, 160) || undefined
+  const path = `/cursos/${c.slug}`
+  usePageSeo({
+    title: c.title,
+    description,
+    image: c.image,
+    path,
+  })
+  useHead({
+    script: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Course',
+          name: c.title,
+          description: description || c.title,
+          url: absoluteUrl(path, siteUrl),
+          image: c.image ? absoluteUrl(resolveMediaUrl(c.image), siteUrl) : absoluteUrl(DEFAULT_OG_IMAGE, siteUrl),
+          provider: {
+            '@type': 'GovernmentOrganization',
+            name: SITE_NAME,
+            url: siteUrl,
+          },
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'BRL',
+            category: 'Free',
+            availability: 'https://schema.org/InStock',
+          },
+        }),
+      },
+    ],
+  })
+}, { immediate: true })
+
 
 const isOnline = computed(() => course.value?.modality === 'online')
 
@@ -305,16 +399,6 @@ const showReservaCounter = computed(() =>
   isReserva.value && !course.value?.hide_available_vacancies,
 )
 
-watch(course, (c) => {
-  if (!c) return
-  usePageSeo({
-    title: c.title,
-    description: c.summary || c.description?.slice(0, 160) || undefined,
-    image: c.image,
-    path: `/cursos/${c.slug}`,
-  })
-})
-
 function formatDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
@@ -322,39 +406,4 @@ function formatDate(d: string) {
 function formatDateTime(d: string) {
   return new Date(d).toLocaleString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
-
-async function load() {
-  loading.value = true
-  try {
-    const tracks = await loadTracks()
-    trilhaLabels.value = Object.fromEntries(tracks.map(t => [t.slug, t.name]))
-    // Com cookies para aplicar restrição de gênero em usuários logados.
-    const data = await useApi<{ course: any; custom_fields: any[]; user_enrollment: any; videos?: any[] }>(`/cursos/${slug}`)
-    course.value = data.course
-    customFields.value = data.custom_fields || []
-    userEnrollment.value = data.user_enrollment
-    videos.value = data.videos || []
-  } catch (e: any) {
-    // 404 = curso inexistente ou oculto para este usuário — não tentar de novo sem sessão.
-    if (e?.statusCode === 404 || e?.status === 404 || e?.response?.status === 404) {
-      course.value = null
-      videos.value = []
-      return
-    }
-    try {
-      const data = await useApiPublic<any>(`/cursos/${slug}`)
-      course.value = data.course
-      customFields.value = data.custom_fields || []
-      userEnrollment.value = data.user_enrollment
-      videos.value = data.videos || []
-    } catch {
-      course.value = null
-      videos.value = []
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(load)
 </script>

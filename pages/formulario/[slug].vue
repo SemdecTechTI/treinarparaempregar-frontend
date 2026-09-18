@@ -1,10 +1,10 @@
 <template>
   <TpeFormRenderer
-    v-if="loaded"
-    :form="data.form"
-    :fields="data.fields"
-    :preview="data.preview"
-    :has-conditional-fields="data.has_conditional_fields"
+    v-if="payload"
+    :form="payload.form"
+    :fields="payload.fields"
+    :preview="payload.preview"
+    :has-conditional-fields="payload.has_conditional_fields"
   />
   <div v-else-if="error" class="min-h-screen flex items-center justify-center p-8 text-center">
     <p class="text-muted">{{ error }}</p>
@@ -20,27 +20,32 @@ const slug = route.params.slug as string
 
 definePageMeta({ layout: 'form' })
 
-const loaded = ref(false)
-const error = ref('')
-const data = ref<any>(null)
-
 useHead({
   link: [{ rel: 'stylesheet', href: '/_nuxt/assets/css/tpe-form.css' }],
 })
 
-onMounted(async () => {
+const { data: payload, error: fetchError } = await useAsyncData(`form-${slug}`, async () => {
   try {
-    data.value = await useApiPublic<any>(`/forms/${slug}`)
-    usePageSeo({
-      title: data.value.form.title,
-      description: data.value.form.description?.slice(0, 160) || undefined,
-      path: `/formulario/${slug}`,
-    })
-    loaded.value = true
+    return await useApiPublic<any>(`/forms/${slug}`)
   } catch {
-    error.value = 'Formulário não encontrado.'
+    return null
   }
 })
+
+if (!payload.value?.form) {
+  throw createError({ statusCode: 404, statusMessage: 'Formulário não encontrado', fatal: true })
+}
+
+const error = computed(() => fetchError.value ? 'Formulário não encontrado.' : '')
+
+watch(payload, (value) => {
+  if (!value?.form) return
+  usePageSeo({
+    title: value.form.title,
+    description: value.form.description?.slice(0, 160) || undefined,
+    path: `/formulario/${slug}`,
+  })
+}, { immediate: true })
 </script>
 
 <style>

@@ -1,3 +1,5 @@
+import { resolveServerApiOrigin } from '~/utils/serverApi'
+
 export function readXsrfToken(): string | undefined {
   if (!import.meta.client) return undefined
   const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)
@@ -25,7 +27,7 @@ export function apiOrigin(): string {
 
 function serverApiOrigin(): string {
   const config = useRuntimeConfig()
-  return (config.apiTarget as string).replace(/\/$/, '')
+  return resolveServerApiOrigin(config.apiTarget as string)
 }
 
 function apiFetch() {

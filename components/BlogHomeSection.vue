@@ -1,5 +1,5 @@
 <template>
-  <section v-if="posts.length" class="container mx-auto px-4 pb-20">
+  <section v-if="posts?.length" class="container mx-auto px-4 pb-20">
     <RevealOnScroll>
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
         <div>
@@ -22,13 +22,11 @@
 <script setup lang="ts">
 import type { BlogPostListItem } from '~/types/blog'
 
-const posts = ref<BlogPostListItem[]>([])
-
-onMounted(async () => {
+const { data: posts } = await useAsyncData('home-blog', async () => {
   try {
-    posts.value = await useApiPublic<BlogPostListItem[]>('/blog?limit=3')
+    return await useApiPublic<BlogPostListItem[]>('/blog?limit=3')
   } catch {
-    posts.value = []
+    return []
   }
 })
 </script>

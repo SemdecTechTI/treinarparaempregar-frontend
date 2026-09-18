@@ -26,7 +26,8 @@
           <div class="card-modern p-6 text-center">
             <div class="text-3xl mb-3">🤝</div>
             <h3 class="font-semibold text-primary mb-2">Parceiros</h3>
-            <p class="text-sm text-muted">SENAC, SENAI e SIMM Prepara em parceria com a Prefeitura.</p>
+            <p class="text-sm text-muted">Instituições da rede em parceria com a Prefeitura.</p>
+            <NuxtLink to="/parceiros" class="text-sm text-accent font-semibold mt-2 inline-block">Ver parceiros</NuxtLink>
           </div>
         </RevealOnScroll>
         <RevealOnScroll :delay="200">
@@ -40,7 +41,7 @@
 
       <RevealOnScroll>
         <div class="card-modern p-8 prose text-text max-w-none space-y-4">
-          <p>Em parceria com instituições como SENAC, SENAI e SIMM Prepara, oferecemos cursos presenciais e online em diversas trilhas de formação profissional.</p>
+          <p>Em parceria com <NuxtLink to="/parceiros" class="text-accent font-semibold">instituições da rede</NuxtLink>, oferecemos cursos presenciais e online em diversas trilhas de formação profissional.</p>
           <p>Nosso objetivo é preparar os cidadãos para o mercado de trabalho, desenvolvendo competências técnicas e comportamentais essenciais para a empregabilidade.</p>
           <NuxtLink to="/cadastrar" class="btn mt-4 inline-flex">Comece agora — é gratuito</NuxtLink>
         </div>

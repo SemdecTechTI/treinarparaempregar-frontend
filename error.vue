@@ -67,6 +67,9 @@ const description = computed(() => {
 useHead({
   title: `${statusCode.value} — ${title.value}`,
 })
+useSeoMeta({
+  robots: 'noindex, nofollow',
+})
 
 function goHome() {
   clearError({ redirect: '/' })

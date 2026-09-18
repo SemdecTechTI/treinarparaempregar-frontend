@@ -73,11 +73,14 @@
           </a>
 
           <template v-if="auth.isLoggedIn">
-            <div class="relative group">
+            <div ref="userMenuEl" class="relative">
               <button
                 type="button"
                 class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl transition-all"
                 :class="lightNav ? 'hover:bg-white/15' : 'hover:bg-primary/10'"
+                :aria-expanded="userMenuOpen"
+                aria-haspopup="menu"
+                @click.stop="userMenuOpen = !userMenuOpen"
               >
                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
                   {{ auth.user?.name?.charAt(0) }}
@@ -89,21 +92,32 @@
                   {{ auth.user?.name?.split(' ')[0] }}
                 </span>
                 <svg
-                  class="w-4 h-4 hidden sm:block"
-                  :class="lightNav ? 'text-white/90' : 'text-muted'"
+                  class="w-4 h-4 hidden sm:block transition-transform duration-200"
+                  :class="[lightNav ? 'text-white/90' : 'text-muted', userMenuOpen ? 'rotate-180' : '']"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 ><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
-              <div class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl py-2 shadow-card border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                <NuxtLink to="/conta" class="nav-dropdown-link">Minha conta</NuxtLink>
-                <NuxtLink to="/conta/perfil" class="nav-dropdown-link">Perfil</NuxtLink>
-                <NuxtLink to="/conta/cursos" class="nav-dropdown-link">Meus cursos</NuxtLink>
-                <NuxtLink to="/conta/seguranca" class="nav-dropdown-link">Senha e e-mail</NuxtLink>
-                <button type="button" @click="auth.logout()" class="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-lg">
-                  Sair
-                </button>
+              <div
+                v-show="userMenuOpen"
+                class="absolute right-0 top-full pt-2"
+                role="menu"
+              >
+                <div class="w-52 bg-white rounded-xl py-2 shadow-card border border-gray-100">
+                  <div v-if="auth.isStaff" class="px-3 pb-2 mb-1 border-b border-gray-100">
+                    <NuxtLink to="/admin" class="btn text-sm w-full py-2">
+                      Ir para o admin
+                    </NuxtLink>
+                  </div>
+                  <NuxtLink to="/conta" class="nav-dropdown-link">Minha conta</NuxtLink>
+                  <NuxtLink to="/conta/perfil" class="nav-dropdown-link">Perfil</NuxtLink>
+                  <NuxtLink to="/conta/cursos" class="nav-dropdown-link">Meus cursos</NuxtLink>
+                  <NuxtLink to="/conta/seguranca" class="nav-dropdown-link">Senha e e-mail</NuxtLink>
+                  <button type="button" @click="auth.logout()" class="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-lg">
+                    Sair
+                  </button>
+                </div>
               </div>
             </div>
           </template>
@@ -152,6 +166,14 @@
             Cadastre sua vaga
           </NuxtLink>
           <template v-if="auth.isLoggedIn">
+            <NuxtLink
+              v-if="auth.isStaff"
+              to="/admin"
+              class="btn text-sm py-2.5 my-1"
+              @click="mobileOpen = false"
+            >
+              Ir para o admin
+            </NuxtLink>
             <NuxtLink to="/conta" class="nav-link nav-link-light" @click="mobileOpen = false">Minha conta</NuxtLink>
             <NuxtLink to="/conta/perfil" class="nav-link nav-link-light" @click="mobileOpen = false">Perfil</NuxtLink>
             <NuxtLink to="/conta/cursos" class="nav-link nav-link-light" @click="mobileOpen = false">Meus cursos</NuxtLink>
@@ -177,6 +199,14 @@ const auth = useAuthStore()
 const route = useRoute()
 const mobileOpen = ref(false)
 const scrolled = ref(false)
+const userMenuOpen = ref(false)
+const userMenuEl = ref<HTMLElement | null>(null)
+
+function onDocumentClick(event: MouseEvent) {
+  if (!userMenuEl.value?.contains(event.target as Node)) {
+    userMenuOpen.value = false
+  }
+}
 
 const isHome = computed(() => route.path === '/')
 const useLightHeader = computed(() => scrolled.value || mobileOpen.value)
@@ -188,13 +218,23 @@ const headerClass = computed(() => {
 })
 
 const onScroll = () => { scrolled.value = window.scrollY > 20 }
-onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
-onUnmounted(() => window.removeEventListener('scroll', onScroll))
-watch(() => route.fullPath, () => { mobileOpen.value = false })
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  document.addEventListener('click', onDocumentClick)
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  document.removeEventListener('click', onDocumentClick)
+})
+watch(() => route.fullPath, () => {
+  mobileOpen.value = false
+  userMenuOpen.value = false
+})
 
 const navLinks = [
   { to: '/quem-somos', label: 'Quem somos' },
   { to: '/cursos', label: 'Cursos' },
+  { to: '/parceiros', label: 'Parceiros' },
   { to: '/blog', label: 'Blog' },
 ]
 

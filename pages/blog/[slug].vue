@@ -75,15 +75,29 @@
 <script setup lang="ts">
 import type { BlogPostDetail } from '~/types/blog'
 import { blogPostImage, formatBlogDate } from '~/utils/blog'
-import { absoluteUrl } from '~/utils/site'
+import { absoluteUrl, DEFAULT_OG_IMAGE } from '~/utils/site'
 import { resolveMediaUrl } from '~/utils/media'
 
 const route = useRoute()
 const slug = route.params.slug as string
 
-const post = ref<BlogPostDetail | null>(null)
-const loading = ref(true)
-const error = ref('')
+const { data, pending: loading, error: fetchError } = await useAsyncData(`blog-${slug}`, async () => {
+  try {
+    return await useApiPublic<{ post: BlogPostDetail }>(`/blog/${slug}`)
+  } catch {
+    return null
+  }
+})
+
+if (!data.value?.post) {
+  throw createError({ statusCode: 404, statusMessage: 'Artigo não encontrado', fatal: true })
+}
+
+const post = computed(() => data.value?.post ?? null)
+const error = computed(() => {
+  if (post.value) return ''
+  return (fetchError.value as any)?.data?.message || (fetchError.value ? 'Artigo não encontrado.' : '')
+})
 
 const heroImage = computed(() => post.value ? blogPostImage(post.value) : null)
 
@@ -104,7 +118,9 @@ watch(post, (p) => {
   const seoTitle = p.meta_title?.replace(/\s*\|\s*Treinar para Empregar$/i, '') || p.title
   const canonical = p.canonical_url ? absoluteUrl(p.canonical_url, siteUrl) : absoluteUrl(`/blog/${p.slug}`, siteUrl)
   const imagePath = p.og_image || p.cover_image
-  const ogImage = imagePath ? absoluteUrl(resolveMediaUrl(imagePath), siteUrl) : absoluteUrl('/icons/apple-touch-icon.png', siteUrl)
+  const ogImage = imagePath
+    ? absoluteUrl(resolveMediaUrl(imagePath), siteUrl)
+    : absoluteUrl(DEFAULT_OG_IMAGE, siteUrl)
 
   usePageSeo({
     title: seoTitle,
@@ -134,17 +150,6 @@ watch(post, (p) => {
     ],
   })
 }, { immediate: true })
-
-onMounted(async () => {
-  try {
-    const data = await useApiPublic<{ post: BlogPostDetail }>(`/blog/${slug}`)
-    post.value = data.post
-  } catch (e: any) {
-    error.value = e?.data?.message || 'Artigo não encontrado.'
-  } finally {
-    loading.value = false
-  }
-})
 </script>
 
 <style scoped>

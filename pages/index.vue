@@ -119,37 +119,19 @@
 
 
 <script setup lang="ts">
+const { data: homeCourses } = await useAsyncData('public-courses::', async () => {
+  try {
+    return await useApiPublic<any[]>('/cursos')
+  } catch {
+    return []
+  }
+})
 
 usePageSeo({
-
   title: 'Cursos gratuitos de qualificação profissional',
-
   description: 'Cursos presenciais e online gratuitos em Salvador. Inscreva-se no Treinar para Empregar e qualifique-se para o mercado de trabalho.',
-
   path: '/',
-
 })
 
-
-
-const courseCount = ref(0)
-
-
-
-onMounted(async () => {
-
-  try {
-
-    const list = await useApiPublic<any[]>('/cursos')
-
-    courseCount.value = list.length
-
-  } catch {
-
-    courseCount.value = 0
-
-  }
-
-})
-
+const courseCount = computed(() => homeCourses.value?.length ?? 0)
 </script>

@@ -287,6 +287,12 @@ import {
 
 definePageMeta({ middleware: 'guest' })
 
+usePageSeo({
+  title: 'Cadastre-se',
+  description: 'Crie sua conta gratuita no Treinar para Empregar e inscreva-se em cursos presenciais e online da Prefeitura de Salvador.',
+  path: '/cadastrar',
+})
+
 const route = useRoute()
 const auth = useAuthStore()
 const { loading: cepLoading, error: cepError, fetchCep } = useCep()

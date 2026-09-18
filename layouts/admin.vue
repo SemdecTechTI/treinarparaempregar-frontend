@@ -32,6 +32,10 @@
 </template>
 
 <script setup lang="ts">
+useSeoMeta({
+  robots: 'noindex, nofollow',
+})
+
 const auth = useAuthStore()
 const sidebarOpen = useAdminSidebar()
 const isMobile = ref(false)

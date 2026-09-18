@@ -1,4 +1,4 @@
-import { absoluteUrl, DEFAULT_DESCRIPTION, SITE_NAME } from '~/utils/site'
+import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME } from '~/utils/site'
 import { resolveMediaUrl } from '~/utils/media'
 
 export interface PageSeoOptions {
@@ -23,7 +23,7 @@ export function usePageSeo(options: PageSeoOptions = {}) {
   const path = options.path || route.path
   const canonical = options.canonical || absoluteUrl(path, siteUrl)
 
-  const imagePath = options.image ? resolveMediaUrl(options.image) : '/icons/apple-touch-icon.png'
+  const imagePath = options.image ? resolveMediaUrl(options.image) : DEFAULT_OG_IMAGE
   const ogImage = absoluteUrl(imagePath, siteUrl)
 
   useSeoMeta({
@@ -32,6 +32,8 @@ export function usePageSeo(options: PageSeoOptions = {}) {
     ogTitle: fullTitle,
     ogDescription: description,
     ogImage,
+    ogImageWidth: 1200,
+    ogImageHeight: 630,
     ogUrl: canonical,
     ogType: options.type || 'website',
     ogSiteName: SITE_NAME,

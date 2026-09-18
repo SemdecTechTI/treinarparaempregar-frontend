@@ -122,9 +122,8 @@ const props = withDefaults(
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 
-const courses = ref<any[]>([])
-const loading = ref(true)
 const currentPage = ref(1)
 
 const filters = reactive({
@@ -151,6 +150,34 @@ const TRACK_ICONS: Record<string, string> = {
   jovem: '🌟',
 }
 
+function catalogPath() {
+  const params = new URLSearchParams()
+  if (filters.trilha) params.set('trilha', filters.trilha)
+  if (filters.modalidade) params.set('modalidade', filters.modalidade)
+  const qs = params.toString()
+  return `/cursos${qs ? `?${qs}` : ''}`
+}
+
+async function fetchCoursesList() {
+  const path = catalogPath()
+  const publicReq = useApiPublic<any[]>(path).catch(() => [] as any[])
+  if (import.meta.client) {
+    try {
+      return await useApi<any[]>(path)
+    } catch {
+      return await publicReq
+    }
+  }
+  return await publicReq
+}
+
+const { data: coursesData, pending: loading, refresh } = await useAsyncData(
+  () => `public-courses:${filters.trilha}:${filters.modalidade}`,
+  fetchCoursesList,
+)
+
+const courses = computed(() => coursesData.value ?? [])
+
 const totalCount = computed(() => courses.value.length)
 
 const paginatedCourses = computed(() => {
@@ -174,7 +201,7 @@ const skeletonCount = computed(() => props.perPage > 0 ? Math.min(props.perPage,
 watch(filters, () => {
   currentPage.value = 1
   syncQueryToRoute()
-  loadCourses()
+  refresh()
 }, { deep: true })
 
 if (props.syncQuery) {
@@ -204,30 +231,10 @@ onMounted(async () => {
   } catch {
     // fallback já em loadTracks
   }
-  loadCourses()
-})
-
-async function loadCourses() {
-  loading.value = true
-  const params = new URLSearchParams()
-  if (filters.trilha) params.set('trilha', filters.trilha)
-  if (filters.modalidade) params.set('modalidade', filters.modalidade)
-  const qs = params.toString()
-  const path = `/cursos${qs ? `?${qs}` : ''}`
-  try {
-    // Com cookies: aplica filtro "só mulheres" para quem está logado.
-    courses.value = await useApi<any[]>(path)
-    if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
-  } catch {
-    try {
-      courses.value = await useApiPublic<any[]>(path)
-    } catch {
-      courses.value = []
-    }
-  } finally {
-    loading.value = false
+  if (auth.isLoggedIn) {
+    await refresh()
   }
-}
+})
 
 function clearFilters() {
   filters.trilha = ''

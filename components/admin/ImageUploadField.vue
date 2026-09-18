@@ -31,7 +31,7 @@
           :disabled="uploading"
           @change="onFileChange"
         />
-        {{ uploading ? 'Enviando...' : modelValue ? 'Trocar image' : 'Selecionar image' }}
+        {{ uploading ? 'Enviando...' : modelValue ? 'Trocar imagem' : 'Selecionar imagem' }}
       </label>
       <span class="text-xs text-muted">JPG, PNG ou WebP — até 5 MB</span>
     </div>
@@ -79,7 +79,7 @@ async function onFileChange(event: Event) {
     const data = await useApiForm<{ url: string }>('/admin/media', formData)
     modelValue.value = data.url
   } catch (e: any) {
-    error.value = e?.data?.message || 'Não foi possível enviar a image.'
+    error.value = e?.data?.message || 'Não foi possível enviar a imagem.'
   } finally {
     uploading.value = false
   }

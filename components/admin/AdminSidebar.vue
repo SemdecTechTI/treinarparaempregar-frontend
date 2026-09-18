@@ -120,6 +120,7 @@ const navLinks = [
   { to: '/admin/vagas-emprego', label: 'Vagas', module: 'job_vacancies' },
   { to: '/admin/parceiros', label: 'Parceiros', module: 'partners' },
   { to: '/admin/blog', label: 'Blog', module: 'blog' },
+  { to: '/admin/newsletter', label: 'Newsletter', module: 'newsletter' },
   { to: '/admin/formularios', label: 'Formulários', module: 'forms' },
   { to: '/admin/campos-personalizados', label: 'Campos globais', module: 'custom_fields' },
   { to: '/admin/cidadaos', label: 'Cidadãos', module: 'citizens' },

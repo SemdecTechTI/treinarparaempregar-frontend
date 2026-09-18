@@ -38,6 +38,12 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'guest' })
 
+usePageSeo({
+  title: 'Recuperar senha',
+  path: '/recuperar-senha',
+  noindex: true,
+})
+
 const email = ref('')
 const loading = ref(false)
 const error = ref('')

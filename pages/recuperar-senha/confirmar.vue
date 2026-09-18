@@ -47,6 +47,12 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'guest' })
 
+usePageSeo({
+  title: 'Nova senha',
+  path: '/recuperar-senha/confirmar',
+  noindex: true,
+})
+
 const route = useRoute()
 const token = computed(() => route.query.token as string)
 const email = computed(() => route.query.email as string)

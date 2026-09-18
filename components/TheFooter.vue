@@ -26,6 +26,7 @@
           <ul class="space-y-2.5 text-sm text-gray-300">
             <li><NuxtLink to="/quem-somos" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Quem somos</NuxtLink></li>
             <li><NuxtLink to="/cursos" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Cursos</NuxtLink></li>
+            <li><NuxtLink to="/parceiros" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Parceiros</NuxtLink></li>
             <li><NuxtLink to="/blog" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Blog</NuxtLink></li>
             <li><NuxtLink to="/cadastrar" class="hover:text-white transition-colors inline-flex items-center gap-1 group"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Cadastrar</NuxtLink></li>
             <li><NuxtLink to="/cadastre-sua-vaga" class="hover:text-white transition-colors inline-flex items-center gap-1 group font-semibold text-accent"><span class="opacity-0 group-hover:opacity-100 transition-opacity">→</span> Cadastre sua vaga</NuxtLink></li>
@@ -46,9 +47,12 @@
           <h4 class="font-semibold mb-4 text-h4">Newsletter</h4>
           <p class="text-sm text-gray-300 mb-4">Receba novidades sobre cursos e oportunidades.</p>
           <form @submit.prevent="subscribe" class="flex gap-2">
-            <input v-model="email" type="email" placeholder="Seu email" class="flex-1 px-4 py-2.5 rounded-xl text-text text-sm bg-white/10 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50" required />
-            <button type="submit" class="btn btn-accent py-2.5 px-4 text-sm rounded-xl shrink-0">Enviar</button>
+            <input v-model="email" type="email" placeholder="Seu email" class="flex-1 px-4 py-2.5 rounded-xl text-text text-sm bg-white/10 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50" required :disabled="submitting" />
+            <button type="submit" class="btn btn-accent py-2.5 px-4 text-sm rounded-xl shrink-0" :disabled="submitting">
+              {{ submitting ? 'Enviando...' : 'Enviar' }}
+            </button>
           </form>
+          <p v-if="feedback" class="text-xs mt-2" :class="feedbackError ? 'text-red-300' : 'text-accent'">{{ feedback }}</p>
         </div>
       </div>
     </div>
@@ -57,10 +61,33 @@
 
 <script setup lang="ts">
 const email = ref('')
+const submitting = ref(false)
+const feedback = ref('')
+const feedbackError = ref(false)
 const dialog = useDialog()
 
 async function subscribe() {
-  await dialog.info('Newsletter cadastrada! (funcionalidade em desenvolvimento)', 'Newsletter')
-  email.value = ''
+  const value = email.value.trim()
+  if (!value) return
+
+  submitting.value = true
+  feedback.value = ''
+  feedbackError.value = false
+  try {
+    await ensureSanctumCsrf()
+    const data = await useApiPublic<{ message?: string }>('/newsletter', {
+      method: 'POST',
+      body: { email: value },
+    })
+    email.value = ''
+    feedback.value = data?.message || 'Cadastro confirmado.'
+    await dialog.success(feedback.value)
+  } catch (e: any) {
+    feedbackError.value = true
+    feedback.value = e?.data?.message || 'Não foi possível cadastrar. Tente novamente.'
+    await dialog.error(feedback.value)
+  } finally {
+    submitting.value = false
+  }
 }
 </script>

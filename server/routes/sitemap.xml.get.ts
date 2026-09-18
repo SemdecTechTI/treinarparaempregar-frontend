@@ -1,12 +1,13 @@
 import { absoluteUrl } from '~/utils/site'
+import { resolveServerApiOrigin } from '~/utils/serverApi'
 
 const STATIC_PATHS = [
   '/',
   '/blog',
   '/quem-somos',
   '/cursos',
+  '/parceiros',
   '/cadastrar',
-  '/entrar',
   '/cadastre-sua-vaga',
   '/trilhas/base',
   '/trilhas/saude',
@@ -17,19 +18,30 @@ const STATIC_PATHS = [
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const siteUrl = (config.public.siteUrl as string).replace(/\/$/, '')
-  const apiOrigin = (process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8082').replace(/\/$/, '')
+  const apiOrigin = resolveServerApiOrigin(config.apiTarget as string)
 
   let blogPaths: string[] = []
+  let coursePaths: string[] = []
+
   try {
     const posts = await $fetch<Array<{ slug: string }>>(`${apiOrigin}/api/blog`, {
       headers: { Accept: 'application/json' },
     })
-    blogPaths = posts.map((p) => `/blog/${p.slug}`)
+    blogPaths = (posts || []).map((p) => `/blog/${p.slug}`)
   } catch {
     // API indisponível — sitemap só com rotas estáticas
   }
 
-  const paths = [...STATIC_PATHS, ...blogPaths]
+  try {
+    const courses = await $fetch<Array<{ slug: string }>>(`${apiOrigin}/api/cursos`, {
+      headers: { Accept: 'application/json' },
+    })
+    coursePaths = (courses || []).map((c) => `/cursos/${c.slug}`)
+  } catch {
+    // idem
+  }
+
+  const paths = [...STATIC_PATHS, ...coursePaths, ...blogPaths]
   const urls = paths.map((path) => {
     const loc = absoluteUrl(path, siteUrl)
     return `<url><loc>${loc}</loc><changefreq>weekly</changefreq></url>`

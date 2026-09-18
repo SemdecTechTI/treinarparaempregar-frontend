@@ -65,9 +65,16 @@ usePageSeo({
   path: '/blog',
 })
 
-const posts = ref<BlogPostListItem[]>([])
-const loading = ref(true)
-const error = ref('')
+const { data: postsData, pending: loading, error: loadError } = await useAsyncData('blog-posts', async () => {
+  try {
+    return await useApiPublic<BlogPostListItem[]>('/blog')
+  } catch {
+    return []
+  }
+})
+
+const posts = computed(() => postsData.value ?? [])
+const error = computed(() => loadError.value ? ((loadError.value as any)?.data?.message || 'Erro ao carregar o blog.') : '')
 
 const featuredPost = computed(() => posts.value.find(p => p.featured) || posts.value[0])
 const withoutFeatured = computed(() => {
@@ -77,14 +84,4 @@ const withoutFeatured = computed(() => {
 })
 const splitPosts = computed(() => withoutFeatured.value.slice(0, 2))
 const gridPosts = computed(() => withoutFeatured.value.slice(2))
-
-onMounted(async () => {
-  try {
-    posts.value = await useApiPublic<BlogPostListItem[]>('/blog')
-  } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao carregar o blog.'
-  } finally {
-    loading.value = false
-  }
-})
 </script>
