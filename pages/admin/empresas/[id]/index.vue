@@ -73,6 +73,14 @@
             <label class="form-label">Site</label>
             <input v-model="form.website" class="input-modern" />
           </div>
+          <div>
+            <label class="form-label">Campanha de origem</label>
+            <input :value="company.campaign || 'Cadastro sem campanha'" class="input-modern bg-gray-50" readonly />
+            <p class="text-xs text-muted mt-1">
+              {{ utmSummary(company) }}
+              {{ company.profile_completed === false ? ' Cadastro ainda incompleto (parou no CNPJ).' : '' }}
+            </p>
+          </div>
         </div>
         <p v-if="saveError" class="text-sm text-red-600 mt-3">{{ saveError }}</p>
         <div class="mt-4">
@@ -156,20 +164,20 @@ async function load() {
     company.value = await useApi<Company>(`/admin/companies/${id.value}`)
     Object.assign(form, {
       cnpj: company.value.cnpj,
-      legal_name: company.value.legal_name,
-      trade_name: company.value.trade_name,
-      company_size: company.value.company_size,
-      business_activity: company.value.business_activity,
-      address: company.value.address,
-      zip_code: company.value.zip_code,
-      city: company.value.city,
+      legal_name: company.value.legal_name || '',
+      trade_name: company.value.trade_name || '',
+      company_size: company.value.company_size || '',
+      business_activity: company.value.business_activity || '',
+      address: company.value.address || '',
+      zip_code: company.value.zip_code || '',
+      city: company.value.city || '',
       neighborhood: company.value.neighborhood || '',
-      reference_point: company.value.reference_point,
-      phone_primary: company.value.phone_primary,
+      reference_point: company.value.reference_point || '',
+      phone_primary: company.value.phone_primary || '',
       phone_secondary: company.value.phone_secondary || '',
-      contact_name: company.value.contact_name,
-      contact_role: company.value.contact_role,
-      email: company.value.email,
+      contact_name: company.value.contact_name || '',
+      contact_role: company.value.contact_role || '',
+      email: company.value.email || '',
       website: company.value.website || '',
     })
   } catch (e: any) {
@@ -192,6 +200,14 @@ async function save() {
   } finally {
     saving.value = false
   }
+}
+
+function utmSummary(item: Company) {
+  const parts = [item.utm_source, item.utm_medium, item.utm_content].filter(Boolean)
+  if (!parts.length) {
+    return 'Preenchido automaticamente pelo link/QR Code, se houver.'
+  }
+  return `UTM: ${parts.join(' / ')}.`
 }
 
 onMounted(load)

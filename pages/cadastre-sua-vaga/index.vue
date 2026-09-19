@@ -12,6 +12,15 @@
           Canal exclusivo para empresas solicitarem vagas ao SIMM. As informações ficam em análise interna
           da equipe e, após aprovação, serão divulgadas.
         </p>
+        <p
+          v-if="campaign || utm.source || utm.medium"
+          class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+        >
+          <span v-if="campaign">Campanha {{ campaign }}</span>
+          <span v-if="utm.source || utm.medium" class="font-medium opacity-80">
+            {{ [utm.source, utm.medium].filter(Boolean).join(' / ') }}
+          </span>
+        </p>
       </div>
     </section>
 
@@ -50,7 +59,7 @@
         </div>
 
         <div v-if="lookupDone" class="mt-6 space-y-4">
-          <div v-if="existingCompany" class="rounded-xl border border-accent/30 bg-accent/5 p-4">
+          <div v-if="foundInDb && existingCompany" class="rounded-xl border border-accent/30 bg-accent/5 p-4">
             <p class="text-sm text-text">
               Encontramos o cadastro de <strong>{{ existingCompany.legal_name }}</strong>
               ({{ existingCompany.job_vacancies_count || 0 }} vaga(s) já enviada(s)).
@@ -444,6 +453,7 @@ usePageSeo({
 })
 
 const { loading: cepLoading, fetchCep } = useCep()
+const { utm, campaign, payload: utmPayload } = useUtmAttribution()
 
 type Step = 'cnpj' | 'company' | 'vacancy' | 'success'
 const step = ref<Step>('cnpj')
@@ -465,6 +475,7 @@ const cnpjInput = ref('')
 const cnpjLoading = ref(false)
 const cnpjError = ref('')
 const lookupDone = ref(false)
+const foundInDb = ref(false)
 const existingCompany = ref<Company | null>(null)
 const registry = ref<Record<string, string | null> | null>(null)
 const registryHint = ref('')
@@ -537,6 +548,7 @@ async function lookupCnpj() {
   cnpjError.value = ''
   error.value = ''
   lookupDone.value = false
+  foundInDb.value = false
   existingCompany.value = null
   registry.value = null
   registryHint.value = ''
@@ -559,6 +571,7 @@ async function lookupCnpj() {
 
     companyForm.cnpj = data.cnpj_digits
     existingCompany.value = data.company
+    foundInDb.value = data.found_in_db
     registry.value = data.registry
     lookupDone.value = true
 
@@ -568,6 +581,8 @@ async function lookupCnpj() {
       applyRegistry(data.registry)
       registryHint.value = 'Razão social preenchida automaticamente pela consulta à Receita (BrasilAPI). Você pode editar se necessário.'
     }
+
+    await persistLead(data.cnpj_digits, data.company, data.registry)
   } catch (e: any) {
     cnpjError.value = e?.data?.message || e?.data?.errors?.cnpj?.[0] || 'Não foi possível consultar o CNPJ.'
   } finally {
@@ -577,22 +592,45 @@ async function lookupCnpj() {
 
 function fillCompany(company: Company) {
   companyForm.cnpj = company.cnpj
-  companyForm.legal_name = company.legal_name
-  companyForm.trade_name = company.trade_name
-  companyForm.company_size = company.company_size
-  companyForm.business_activity = company.business_activity
-  companyForm.address = company.address
-  companyForm.zip_code = company.zip_code
-  companyForm.city = company.city
+  companyForm.legal_name = company.legal_name || ''
+  companyForm.trade_name = company.trade_name || ''
+  companyForm.company_size = company.company_size || ''
+  companyForm.business_activity = company.business_activity || ''
+  companyForm.address = company.address || ''
+  companyForm.zip_code = company.zip_code || ''
+  companyForm.city = company.city || ''
   companyForm.neighborhood = company.neighborhood || ''
-  companyForm.reference_point = company.reference_point
-  companyForm.phone_primary = company.phone_primary
+  companyForm.reference_point = company.reference_point || ''
+  companyForm.phone_primary = company.phone_primary || ''
   companyForm.phone_secondary = company.phone_secondary || ''
-  companyForm.contact_name = company.contact_name
-  companyForm.contact_role = company.contact_role
-  companyForm.email = company.email
+  companyForm.contact_name = company.contact_name || ''
+  companyForm.contact_role = company.contact_role || ''
+  companyForm.email = company.email || ''
   companyForm.website = company.website || ''
   companyForm.hiring_periods = [...(company.hiring_periods || [])]
+}
+
+async function persistLead(
+  cnpj: string,
+  company: Company | null,
+  registryData: Record<string, string | null> | null,
+) {
+  try {
+    await ensureSanctumCsrf()
+    const lead = await useApiPublic<Company>('/companies/leads', {
+      method: 'POST',
+      body: {
+        cnpj,
+        ...(registryData || {}),
+        ...utmPayload(),
+      },
+      credentials: 'include',
+    })
+    existingCompany.value = lead
+    if (company) fillCompany(lead)
+  } catch {
+    // lookup already succeeded; lead capture is best-effort
+  }
 }
 
 function applyRegistry(data: Record<string, string | null>) {
@@ -650,7 +688,7 @@ async function saveCompany() {
     await ensureSanctumCsrf()
     const saved = await useApiPublic<Company>('/companies', {
       method: 'POST',
-      body: { ...companyForm },
+      body: { ...companyForm, ...utmPayload() },
       credentials: 'include',
     })
     existingCompany.value = saved
@@ -675,6 +713,7 @@ async function saveVacancy() {
       method: 'POST',
       body: {
         ...vacancyForm,
+        ...utmPayload(),
         salary: vacancyForm.salary.trim() || 'A combinar',
         experience_time: vacancyForm.experience_time.trim() || 'Não exige',
       },
@@ -747,6 +786,7 @@ function resetWizard(keepCnpj = false) {
   if (!keepCnpj) {
     cnpjInput.value = ''
     existingCompany.value = null
+    foundInDb.value = false
     registry.value = null
   } else {
     cnpjInput.value = formatCnpj(cnpj)

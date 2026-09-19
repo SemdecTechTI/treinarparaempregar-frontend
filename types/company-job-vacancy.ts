@@ -19,6 +19,12 @@ export interface Company {
   email: string
   website?: string | null
   hiring_periods?: string[] | null
+  campaign?: string | null
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_term?: string | null
+  utm_content?: string | null
+  profile_completed?: boolean
   job_vacancies_count?: number
   job_vacancies?: JobVacancy[]
   created_at?: string
