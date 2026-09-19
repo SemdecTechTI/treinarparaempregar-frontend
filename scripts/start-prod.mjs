@@ -53,7 +53,7 @@ if (nodeMajor < 20) {
 const inOpenShift = !!(process.env.OPENSHIFT_BUILD_NAME || process.env.KUBERNETES_SERVICE_HOST)
 process.env.NITRO_HOST ||= '0.0.0.0'
 process.env.HOST ||= process.env.NITRO_HOST
-process.env.NITRO_PORT ||= process.env.PORT || (inOpenShift ? '8080' : '3002')
+process.env.NITRO_PORT ||= process.env.PORT || (inOpenShift ? '8080' : '5175')
 process.env.PORT ||= process.env.NITRO_PORT
 
 // Mesma origem: browser chama /api no front; o Nitro (server/middleware/api-proxy.ts) encaminha ao Laravel.

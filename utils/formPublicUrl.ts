@@ -7,7 +7,7 @@ export function resolvePublicSiteUrl(siteUrl?: string): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
   }
-  return (siteUrl || 'http://localhost:3002').replace(/\/$/, '')
+  return (siteUrl || 'http://localhost:5175').replace(/\/$/, '')
 }
 
 export function formPublicAbsoluteUrl(slug: string, siteUrl?: string) {

@@ -14,26 +14,29 @@ export default defineNuxtConfig({
   // e gravava '/api' no bundle.
   runtimeConfig: {
     // SSR chama o Laravel direto. Em runtime: NUXT_API_TARGET ou NUXT_PROXY_API_TARGET.
-    apiTarget: 'http://localhost:8082',
+    apiTarget: 'http://localhost:8084',
     public: {
       apiBase: '/api',
-      siteUrl: 'http://localhost:3002',
+      siteUrl: 'http://localhost:5175',
     },
+  },
+  devServer: {
+    port: 5175,
   },
   vite: {
     server: {
-      // Dev: mesma origem (localhost:3002) → evita CORS/CSRF entre portas
+      // Dev: mesma origem (localhost:5175) → evita CORS/CSRF entre portas
       proxy: {
         '/api': {
-          target: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8082',
+          target: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8084',
           changeOrigin: true,
         },
         '/sanctum': {
-          target: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8082',
+          target: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8084',
           changeOrigin: true,
         },
         '/storage': {
-          target: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8082',
+          target: process.env.NUXT_PROXY_API_TARGET || 'http://localhost:8084',
           changeOrigin: true,
         },
       },
