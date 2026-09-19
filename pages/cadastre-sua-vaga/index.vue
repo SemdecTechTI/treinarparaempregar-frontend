@@ -12,15 +12,6 @@
           Canal exclusivo para empresas solicitarem vagas ao SIMM. As informações ficam em análise interna
           da equipe e, após aprovação, serão divulgadas.
         </p>
-        <p
-          v-if="campaign || utm.source || utm.medium"
-          class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-        >
-          <span v-if="campaign">Campanha {{ campaign }}</span>
-          <span v-if="utm.source || utm.medium" class="font-medium opacity-80">
-            {{ [utm.source, utm.medium].filter(Boolean).join(' / ') }}
-          </span>
-        </p>
       </div>
     </section>
 
@@ -453,7 +444,7 @@ usePageSeo({
 })
 
 const { loading: cepLoading, fetchCep } = useCep()
-const { utm, campaign, payload: utmPayload } = useUtmAttribution()
+const { payload: utmPayload } = useUtmAttribution()
 
 type Step = 'cnpj' | 'company' | 'vacancy' | 'success'
 const step = ref<Step>('cnpj')
