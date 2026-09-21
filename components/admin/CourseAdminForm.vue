@@ -36,12 +36,6 @@
         <input v-model="form.workload" type="text" class="input-modern" placeholder="Ex: 4H - 13:00 às 17:00" />
       </div>
 
-      <div>
-        <label class="form-label">Link para inscrição</label>
-        <input v-model="form.enrollment_link" type="url" class="input-modern" placeholder="https://..." />
-        <p class="text-xs text-muted mt-1">Opcional. Redireciona o cidadão após confirmar a inscrição.</p>
-      </div>
-
       <div class="md:col-span-2">
         <label class="form-label">Resumo</label>
         <textarea v-model="form.summary" rows="2" class="input-modern" placeholder="Texto curto exibido em listagens" />
@@ -59,12 +53,6 @@
           <option value="online">Online (vídeos no portal)</option>
           <option value="ead">EAD (plataforma do parceiro)</option>
         </select>
-      </div>
-
-      <div>
-        <label class="form-label">Ordem</label>
-        <input v-model.number="form.sort_order" type="number" min="0" class="input-modern" />
-        <p class="text-xs text-muted mt-1">Menor número aparece primeiro na listagem.</p>
       </div>
 
       <div>
