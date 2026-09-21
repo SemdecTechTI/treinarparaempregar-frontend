@@ -59,12 +59,44 @@
                 As vagas regulares foram preenchidas. Novas inscrições entram na lista de reserva.
               </p>
             </div>
+            <template v-if="showSidebarCta">
+              <button
+                v-if="auth.isLoggedIn && canEnroll"
+                type="button"
+                class="btn w-full"
+                @click="showEnrollmentModal = true"
+              >
+                {{ isReserva ? 'Inscrever-se na reserva' : 'Inscreva-se' }}
+              </button>
+              <div v-else-if="!auth.isLoggedIn && enrollmentOpen" class="space-y-2">
+                <NuxtLink :to="`/cadastrar?origem=${slug}`" class="btn w-full">
+                  Inscreva-se
+                </NuxtLink>
+                <NuxtLink
+                  :to="`/entrar?redirect=/cursos/${slug}`"
+                  class="block text-center text-sm font-medium text-primary hover:underline"
+                >
+                  Já tem conta? Entrar
+                </NuxtLink>
+              </div>
+            </template>
           </div>
         </div>
       </aside>
 
       <!-- Conteúdo principal -->
       <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-6 lg:gap-7">
+        <div
+          v-if="course.image"
+          class="overflow-hidden rounded-2xl shadow-card border border-gray-100/80 bg-gray-100"
+        >
+          <img
+            :src="resolveMediaUrl(course.image)"
+            :alt="course.title"
+            class="w-full aspect-[16/9] object-cover"
+          />
+        </div>
+
         <header class="space-y-3 pb-1">
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <span class="inline-block px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
@@ -85,13 +117,17 @@
             </span>
           </div>
           <h1 class="text-[#2d3f58] leading-tight">{{ course.title }}</h1>
-          <p v-if="course.summary" class="text-muted leading-relaxed text-base lg:text-lg max-w-3xl">
+          <p v-if="course.summary" class="text-text/80 leading-relaxed text-base lg:text-lg max-w-3xl">
             {{ course.summary }}
           </p>
-          <div v-if="course.description" class="prose prose-sm lg:prose-base max-w-3xl text-muted leading-relaxed whitespace-pre-line">
+        </header>
+
+        <section v-if="course.description" class="card-flat p-5 lg:p-7">
+          <h2 class="font-semibold text-primary mb-4 text-lg">Sobre o curso</h2>
+          <div class="text-text text-sm lg:text-base leading-relaxed whitespace-pre-line">
             {{ course.description }}
           </div>
-        </header>
+        </section>
 
         <!-- Informações do curso -->
         <section v-if="hasInfoCards" class="flex flex-col gap-4">
@@ -175,13 +211,22 @@
             </p>
           </template>
 
-          <NuxtLink
-            v-else
-            :to="`/cadastrar?origem=${slug}`"
-            class="btn px-10 py-4 text-base rounded-xl inline-flex mt-2"
-          >
-            Criar minha conta gratuitamente
-          </NuxtLink>
+          <div v-else-if="enrollmentOpen" class="space-y-3">
+            <NuxtLink
+              :to="`/cadastrar?origem=${slug}`"
+              class="btn px-10 py-4 text-base rounded-xl inline-flex mt-2"
+            >
+              Inscreva-se
+            </NuxtLink>
+            <p class="text-sm text-muted">
+              <NuxtLink :to="`/entrar?redirect=/cursos/${slug}`" class="font-medium text-primary hover:underline">
+                Já tem conta? Entrar
+              </NuxtLink>
+            </p>
+          </div>
+          <p v-else class="text-muted text-sm lg:text-base max-w-lg mx-auto leading-relaxed py-2">
+            {{ enrollBlockedMessage }}
+          </p>
         </section>
       </div>
     </div>
@@ -323,6 +368,14 @@ const canEnroll = computed(() => {
 })
 
 const isReserva = computed(() => course.value?.enrollment_status === 'reserva')
+
+const enrollmentOpen = computed(() =>
+  ['disponivel', 'reserva'].includes(course.value?.enrollment_status || ''),
+)
+
+const showSidebarCta = computed(() =>
+  enrollmentOpen.value && !userEnrollment.value,
+)
 
 const enrollBlockedMessage = computed(() => {
   if (!course.value) return ''
