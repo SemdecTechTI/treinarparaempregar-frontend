@@ -52,12 +52,13 @@
             <th class="px-4 py-3 text-left">Tipo</th>
             <th class="px-4 py-3 text-left">Obrigatório</th>
             <th class="px-4 py-3 text-left">Ordem</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!fields.length" class="border-t">
-            <td colspan="5" class="px-4 py-6 text-center text-muted">
+            <td colspan="6" class="px-4 py-6 text-center text-muted">
               Nenhum campo global cadastrado.
             </td>
           </tr>
@@ -66,6 +67,7 @@
             <td class="px-4 py-3">{{ typeLabel(f.type) }}</td>
             <td class="px-4 py-3">{{ f.required ? 'Sim' : 'Não' }}</td>
             <td class="px-4 py-3">{{ f.sort_order ?? 0 }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(f.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(f) },
@@ -82,6 +84,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'custom_fields' })
 
 const fields = ref<any[]>([])

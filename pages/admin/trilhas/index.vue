@@ -40,12 +40,13 @@
             <th class="px-4 py-3 text-left">Slug</th>
             <th class="px-4 py-3 text-left">Ordem</th>
             <th class="px-4 py-3 text-left">Ativa</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!rows.length" class="border-t">
-            <td colspan="5" class="px-4 py-6 text-center text-muted">Nenhuma trilha cadastrada.</td>
+            <td colspan="6" class="px-4 py-6 text-center text-muted">Nenhuma trilha cadastrada.</td>
           </tr>
           <tr v-for="t in rows" :key="t.id" class="border-t">
             <td class="px-4 py-3 font-medium">{{ t.name }}</td>
@@ -54,6 +55,7 @@
             <td class="px-4 py-3">
               <span :class="t.active ? 'text-green-700' : 'text-muted'">{{ t.active ? 'Sim' : 'Não' }}</span>
             </td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(t.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(t) },
@@ -70,6 +72,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
 import { clearTracksCache } from '~/utils/tracks'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'tracks' })
@@ -80,6 +83,7 @@ type TrackRow = {
   slug: string
   sort_order: number
   active: boolean
+  created_at?: string
 }
 
 const rows = ref<TrackRow[]>([])

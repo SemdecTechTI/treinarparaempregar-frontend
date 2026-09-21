@@ -20,8 +20,16 @@
       />
       <div>
         <label class="form-label">Site</label>
-        <input v-model="form.website_url" type="text" class="input-modern" placeholder="https://www.exemplo.com" />
-        <p class="text-xs text-muted mt-1">Opcional. Se preenchido, o card fica clicável na página pública de parceiros.</p>
+        <input
+          v-model="form.website_url"
+          type="text"
+          inputmode="url"
+          autocomplete="url"
+          class="input-modern"
+          placeholder="www.exemplo.com"
+          @blur="form.website_url = normalizeWebsiteUrl(form.website_url)"
+        />
+        <p class="text-xs text-muted mt-1">Opcional. Pode informar só o endereço, como empresa.com.br. Se preenchido, o card fica clicável na página pública de parceiros.</p>
       </div>
       <div>
         <label class="form-label">Email de contato</label>
@@ -46,12 +54,13 @@
             <th class="px-4 py-3 text-left">Site</th>
             <th class="px-4 py-3 text-left">Email</th>
             <th class="px-4 py-3 text-left">Telefone</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!partners.length" class="border-t">
-            <td colspan="5" class="px-4 py-6 text-center text-muted">Nenhum parceiro cadastrado.</td>
+            <td colspan="6" class="px-4 py-6 text-center text-muted">Nenhum parceiro cadastrado.</td>
           </tr>
           <tr v-for="p in partners" :key="p.id" class="border-t">
             <td class="px-4 py-3">
@@ -85,6 +94,7 @@
             </td>
             <td class="px-4 py-3">{{ p.contact_email || '—' }}</td>
             <td class="px-4 py-3">{{ p.contact_phone || '—' }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(p.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(p) },
@@ -101,7 +111,9 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
 import { resolveMediaUrl } from '~/utils/media'
+import { normalizeWebsiteUrl } from '~/utils/url'
 import AdminImageUploadField from '~/components/admin/ImageUploadField.vue'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'partners' })
@@ -181,7 +193,7 @@ async function save() {
     await ensureSanctumCsrf()
     const body = {
       name: form.name.trim(),
-      website_url: form.website_url.trim() || null,
+      website_url: normalizeWebsiteUrl(form.website_url) || null,
       contact_email: form.contact_email.trim() || null,
       contact_phone: form.contact_phone.trim() || null,
       logo: form.logo || null,

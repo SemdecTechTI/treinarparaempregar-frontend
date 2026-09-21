@@ -14,13 +14,14 @@
             <th class="px-4 py-3 text-left">Título</th>
             <th class="px-4 py-3 text-left">Status</th>
             <th class="px-4 py-3 text-left">Publicação</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-left">Destaque</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!posts.length" class="border-t">
-            <td colspan="5" class="px-4 py-6 text-center text-muted">Nenhum artigo cadastrado.</td>
+            <td colspan="6" class="px-4 py-6 text-center text-muted">Nenhum artigo cadastrado.</td>
           </tr>
           <tr v-for="post in posts" :key="post.id" class="border-t">
             <td class="px-4 py-3">
@@ -35,7 +36,8 @@
                 {{ post.status === 'published' ? 'Publicado' : 'Rascunho' }}
               </span>
             </td>
-            <td class="px-4 py-3 text-muted">{{ formatDate(post.published_at) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(post.published_at) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(post.created_at) }}</td>
             <td class="px-4 py-3">{{ post.featured ? 'Sim' : '—' }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
@@ -54,17 +56,14 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'blog' })
 
 const posts = ref<any[]>([])
 const loadError = ref('')
 const dialog = useDialog()
 const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
-
-function formatDate(d: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
 
 function openPublic(post: any) {
   if (post.status !== 'published') return

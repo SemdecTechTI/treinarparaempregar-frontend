@@ -56,7 +56,7 @@
             <th class="px-4 py-3 font-medium">Telefone</th>
             <th class="px-4 py-3 font-medium">Email</th>
             <th v-if="!scopedToCourse" class="px-4 py-3 font-medium">Curso</th>
-            <th class="px-4 py-3 font-medium">Data</th>
+            <th class="px-4 py-3 font-medium whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 font-medium">Status</th>
             <th class="px-4 py-3 font-medium">Status no parceiro</th>
             <th class="px-4 py-3 font-medium text-right">Ações</th>
@@ -75,7 +75,7 @@
             <td class="px-4 py-3">{{ userPhone(item.user) }}</td>
             <td class="px-4 py-3">{{ item.user?.email || '—' }}</td>
             <td v-if="!scopedToCourse" class="px-4 py-3">{{ item.enrollable?.title || '—' }}</td>
-            <td class="px-4 py-3">{{ formatDate(item.created_at) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(item.created_at) }}</td>
             <td class="px-4 py-3">
               <div class="flex flex-wrap items-center gap-1.5">
                 <EnrollmentStatusBadge :status="item.status" />
@@ -131,6 +131,7 @@
 
 <script setup lang="ts">
 import type { RowActionItem } from '~/types/row-action'
+import { formatDateTime } from '~/utils/datetime'
 
 const props = withDefaults(
   defineProps<{
@@ -176,11 +177,6 @@ function userCpf(user?: { cpf?: string; profile?: { cpf?: string } }) {
 
 function userPhone(user?: { phone?: string; profile?: { phone?: string } }) {
   return user?.phone || user?.profile?.phone || '—'
-}
-
-function formatDate(d: string) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('pt-BR')
 }
 
 function enrollmentActions(item: any): RowActionItem[] {

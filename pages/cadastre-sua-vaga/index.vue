@@ -197,7 +197,16 @@
             </div>
             <div>
               <label class="form-label">Site</label>
-              <input v-model="companyForm.website" type="url" class="input-modern" placeholder="https://" />
+              <input
+                v-model="companyForm.website"
+                type="text"
+                inputmode="url"
+                autocomplete="url"
+                class="input-modern"
+                placeholder="www.empresa.com.br"
+                @blur="onWebsiteBlur"
+              />
+              <p class="text-xs text-muted mt-1">Pode informar só o endereço, como empresa.com.br</p>
             </div>
           </div>
 
@@ -437,6 +446,7 @@ import {
   type JobVacancy,
 } from '~/types/company-job-vacancy'
 import { formatCnpj, isValidCnpj, normalizeCnpj } from '~/utils/cnpj'
+import { normalizeWebsiteUrl } from '~/utils/url'
 
 usePageSeo({
   title: 'Cadastre sua vaga',
@@ -668,11 +678,16 @@ async function onCepBlur() {
   }
 }
 
+function onWebsiteBlur() {
+  companyForm.website = normalizeWebsiteUrl(companyForm.website)
+}
+
 async function saveCompany() {
   if (!companyForm.hiring_periods.length) {
     error.value = 'Selecione ao menos um período de contratação (ou Nenhum).'
     return
   }
+  companyForm.website = normalizeWebsiteUrl(companyForm.website)
   saving.value = true
   error.value = ''
   try {

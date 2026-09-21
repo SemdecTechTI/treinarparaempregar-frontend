@@ -51,7 +51,7 @@
             </td>
             <td class="px-4 py-3">{{ item.openings_count }}</td>
             <td class="px-4 py-3"><JobVacancyStatusBadge :status="item.status" /></td>
-            <td class="px-4 py-3">{{ formatDate(item.created_at) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(item.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Abrir', onClick: () => navigateTo(`/admin/vagas-emprego/${item.id}`) },
@@ -74,6 +74,7 @@
 <script setup lang="ts">
 import type { JobVacancy } from '~/types/company-job-vacancy'
 import { formatCnpj } from '~/utils/cnpj'
+import { formatDateTime } from '~/utils/datetime'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'job_vacancies' })
 
@@ -106,13 +107,6 @@ async function load(p = 1) {
   } catch (e: any) {
     loadError.value = e?.data?.message || 'Erro ao carregar vagas.'
   }
-}
-
-function formatDate(value?: string) {
-  if (!value) return '—'
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return value
-  return d.toLocaleDateString('pt-BR')
 }
 
 onMounted(() => load(1))

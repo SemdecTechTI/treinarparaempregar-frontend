@@ -63,17 +63,19 @@
             <th class="px-4 py-3 text-left">Nome</th>
             <th class="px-4 py-3 text-left">Email</th>
             <th class="px-4 py-3 text-left">Perfil</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!users.length" class="border-t">
-            <td colspan="4" class="px-4 py-6 text-center text-muted">Nenhum usuário interno.</td>
+            <td colspan="5" class="px-4 py-6 text-center text-muted">Nenhum usuário interno.</td>
           </tr>
           <tr v-for="u in users" :key="u.id" class="border-t">
             <td class="px-4 py-3">{{ u.name }}</td>
             <td class="px-4 py-3">{{ u.email }}</td>
             <td class="px-4 py-3">{{ accessLabel(u) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(u.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(u) },
@@ -90,6 +92,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminOnly: true })
 
 const auth = useAuthStore()

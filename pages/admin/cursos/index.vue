@@ -21,12 +21,13 @@
             <th class="px-4 py-3 text-left">Vagas</th>
             <th class="px-4 py-3 text-left">Ativo</th>
             <th class="px-4 py-3 text-left">Listado</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!rows.length">
-            <td colspan="9" class="px-4 py-6 text-center text-muted">Nenhum curso cadastrado.</td>
+            <td colspan="10" class="px-4 py-6 text-center text-muted">Nenhum curso cadastrado.</td>
           </tr>
           <tr v-for="c in rows" :key="c.id" class="border-t hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-primary">
@@ -75,6 +76,7 @@
                 {{ c.listed ? 'Sim' : 'Não' }}
               </span>
             </td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(c.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="courseActions(c)" />
             </td>
@@ -89,6 +91,7 @@
 
 <script setup lang="ts">
 import type { RowActionItem } from '~/types/row-action'
+import { formatDateTime } from '~/utils/datetime'
 import { loadTracks, trackLabel } from '~/utils/tracks'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'courses' })
@@ -108,6 +111,7 @@ type CourseRow = {
   women_only?: boolean
   adults_only?: boolean
   sort_order?: number
+  created_at?: string
 }
 
 const loading = ref(true)

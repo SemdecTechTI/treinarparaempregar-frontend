@@ -27,13 +27,14 @@
             <th class="px-4 py-3 text-left">Título</th>
             <th class="px-4 py-3 text-left">Status</th>
             <th class="px-4 py-3 text-left">Respostas</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-left">Link</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!rows.length" class="border-t">
-            <td colspan="5" class="px-4 py-8 text-center text-muted">Nenhum formulário cadastrado.</td>
+            <td colspan="6" class="px-4 py-8 text-center text-muted">Nenhum formulário cadastrado.</td>
           </tr>
           <tr v-for="f in rows" :key="f.id" class="border-t hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-primary">{{ f.title }}</td>
@@ -42,6 +43,7 @@
               <span v-if="f.unique_submission" class="text-xs text-muted block">Resposta única</span>
             </td>
             <td class="px-4 py-3">{{ f.entries_count }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(f.created_at) }}</td>
             <td class="px-4 py-3">
               <button type="button" class="text-accent text-xs hover:underline" @click="copyLink(f.slug)">
                 Copiar link
@@ -61,6 +63,7 @@
 
 <script setup lang="ts">
 import type { RowActionItem } from '~/types/row-action'
+import { formatDateTime } from '~/utils/datetime'
 import { formPublicAbsoluteUrl } from '~/utils/formPublicUrl'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })

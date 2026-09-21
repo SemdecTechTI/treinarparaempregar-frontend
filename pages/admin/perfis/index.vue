@@ -48,12 +48,13 @@
             <th class="px-4 py-3 text-left">Perfil</th>
             <th class="px-4 py-3 text-left">Módulos</th>
             <th class="px-4 py-3 text-left">Usuários</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!profiles.length" class="border-t">
-            <td colspan="4" class="px-4 py-6 text-center text-muted">Nenhum perfil cadastrado.</td>
+            <td colspan="5" class="px-4 py-6 text-center text-muted">Nenhum perfil cadastrado.</td>
           </tr>
           <tr v-for="p in profiles" :key="p.id" class="border-t align-top">
             <td class="px-4 py-3">
@@ -71,6 +72,7 @@
               </div>
             </td>
             <td class="px-4 py-3">{{ p.users_count ?? 0 }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(p.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(p) },
@@ -87,6 +89,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminOnly: true })
 
 interface AdminModule {
@@ -100,6 +104,7 @@ interface AdminProfile {
   description: string | null
   permissions: string[]
   users_count?: number
+  created_at?: string
 }
 
 const dialog = useDialog()

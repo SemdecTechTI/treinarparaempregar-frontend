@@ -35,12 +35,13 @@
             <th class="px-4 py-3 text-left">Contato</th>
             <th class="px-4 py-3 text-left">Campanha</th>
             <th class="px-4 py-3 text-left">Vagas</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!rows.length" class="border-t">
-            <td colspan="6" class="px-4 py-6 text-center text-muted">Nenhuma empresa cadastrada.</td>
+            <td colspan="7" class="px-4 py-6 text-center text-muted">Nenhuma empresa cadastrada.</td>
           </tr>
           <tr v-for="item in rows" :key="item.id" class="border-t">
             <td class="px-4 py-3">
@@ -66,6 +67,7 @@
               <span v-if="!item.campaign && !item.utm_source && !item.utm_medium" class="text-muted">—</span>
             </td>
             <td class="px-4 py-3">{{ item.job_vacancies_count ?? 0 }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(item.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Ver perfil / editar', onClick: () => navigateTo(`/admin/empresas/${item.id}`) },
@@ -88,6 +90,7 @@
 <script setup lang="ts">
 import type { Company } from '~/types/company-job-vacancy'
 import { formatCnpj } from '~/utils/cnpj'
+import { formatDateTime } from '~/utils/datetime'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'companies' })
 

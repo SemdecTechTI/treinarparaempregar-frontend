@@ -1,3 +1,5 @@
+import { normalizeWebsiteUrl } from '~/utils/url'
+
 export interface PublicPartner {
   id: number
   name: string
@@ -50,9 +52,5 @@ export function pickHeroPartners(list: PublicPartner[]) {
 }
 
 export function partnerWebsiteHref(url?: string | null): string | null {
-  const trimmed = (url || '').trim()
-  if (!trimmed) return null
-  if (/^(javascript|data|vbscript):/i.test(trimmed)) return null
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://${trimmed.replace(/^\/+/, '')}`
+  return normalizeWebsiteUrl(url) || null
 }

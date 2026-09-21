@@ -71,7 +71,16 @@
           </div>
           <div>
             <label class="form-label">Site</label>
-            <input v-model="form.website" class="input-modern" />
+            <input
+              v-model="form.website"
+              type="text"
+              inputmode="url"
+              autocomplete="url"
+              class="input-modern"
+              placeholder="www.empresa.com.br"
+              @blur="form.website = normalizeWebsiteUrl(form.website)"
+            />
+            <p class="text-xs text-muted mt-1">Pode informar só o endereço, como empresa.com.br</p>
           </div>
           <div>
             <label class="form-label">Campanha de origem</label>
@@ -129,6 +138,7 @@
 <script setup lang="ts">
 import type { Company } from '~/types/company-job-vacancy'
 import { formatCnpj } from '~/utils/cnpj'
+import { normalizeWebsiteUrl } from '~/utils/url'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'companies' })
 
@@ -189,6 +199,7 @@ async function save() {
   saving.value = true
   saveError.value = ''
   try {
+    form.website = normalizeWebsiteUrl(form.website)
     company.value = await useApi<Company>(`/admin/companies/${id.value}`, {
       method: 'PUT',
       body: { ...form },

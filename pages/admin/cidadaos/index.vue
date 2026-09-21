@@ -43,7 +43,7 @@
             <td class="px-4 py-3">{{ c.phone || c.profile?.phone || '—' }}</td>
             <td class="px-4 py-3">{{ c.city || c.profile?.city || '—' }}</td>
             <td class="px-4 py-3">{{ c.enrollments_count ?? 0 }}</td>
-            <td class="px-4 py-3">{{ formatDate(c.created_at) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(c.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Ver perfil', to: `/admin/cidadaos/${c.id}` },
@@ -76,6 +76,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'citizens' })
 
 const citizens = ref<any[]>([])
@@ -87,10 +89,6 @@ const meta = reactive({
   last_page: 1,
   total: 0,
 })
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('pt-BR')
-}
 
 async function load(page = 1) {
   loading.value = true

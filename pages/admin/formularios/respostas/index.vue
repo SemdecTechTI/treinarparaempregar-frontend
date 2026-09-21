@@ -11,7 +11,7 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-4 py-3 text-left">Formulário</th>
-            <th class="px-4 py-3 text-left">Data</th>
+            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-left">Nome</th>
             <th class="px-4 py-3 text-left">E-mail</th>
             <th class="px-4 py-3 text-right">Ações</th>
@@ -23,7 +23,7 @@
           </tr>
           <tr v-for="e in entries" :key="e.id" class="border-t">
             <td class="px-4 py-3">{{ e.form?.title || '—' }}</td>
-            <td class="px-4 py-3">{{ formatDate(e.submitted_at) }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(e.submitted_at) }}</td>
             <td class="px-4 py-3">{{ e.name || '—' }}</td>
             <td class="px-4 py-3">{{ e.email || '—' }}</td>
             <td class="px-4 py-3 text-right">
@@ -39,16 +39,14 @@
 </template>
 
 <script setup lang="ts">
+import { formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const entries = ref<any[]>([])
 const loading = ref(true)
 const search = ref('')
 const meta = reactive({ current_page: 1, last_page: 1, total: 0 })
-
-function formatDate(d: string) {
-  return d ? new Date(d).toLocaleString('pt-BR') : '—'
-}
 
 async function load(page = 1) {
   loading.value = true
