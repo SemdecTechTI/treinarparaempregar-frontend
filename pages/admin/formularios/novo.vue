@@ -9,7 +9,6 @@
         <AdminActionButton :label="saving ? 'Criando...' : 'Criar e adicionar perguntas'" variant="primary" size="md" :disabled="saving" submit />
         <AdminActionButton to="/admin/formularios" label="Cancelar" variant="outline" size="md" />
       </div>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -17,8 +16,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
+const dialog = useDialog()
 const saving = ref(false)
-const error = ref('')
 const form = reactive({
   title: '',
   description: '',
@@ -37,7 +36,6 @@ const form = reactive({
 
 async function save() {
   saving.value = true
-  error.value = ''
   try {
     const body = {
       ...form,
@@ -46,9 +44,10 @@ async function save() {
       end_datetime: form.end_datetime || null,
     }
     const created = await useApi<any>('/admin/forms', { method: 'POST', body })
+    await dialog.toastSuccess('Formulário criado.')
     await navigateTo(`/admin/formularios/${created.id}/campos`)
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao criar formulário.'
+    await dialog.toastError(e?.data?.message || 'Erro ao criar formulário.')
   } finally {
     saving.value = false
   }

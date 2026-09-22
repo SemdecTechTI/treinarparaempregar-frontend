@@ -9,7 +9,7 @@
         size="md"
       />
     </AdminHeader>
-    <div v-if="loading" class="text-center py-12">Carregando...</div>
+    <PageLoading v-if="loading" variant="detail" />
     <div v-else-if="enrollment" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="space-y-6">
         <div class="bg-white rounded-lg shadow p-6 space-y-4">
@@ -164,6 +164,7 @@ const loading = ref(true)
 const newStatus = ref('')
 const note = ref('')
 const saving = ref(false)
+const dialog = useDialog()
 
 const pageTitle = computed(() => {
   const title = enrollment.value?.enrollable?.title
@@ -231,6 +232,9 @@ async function updateStatus() {
     })
     await load()
     note.value = ''
+    await dialog.toastSuccess('Status atualizado.')
+  } catch (e: any) {
+    await dialog.toastError(e?.data?.message || 'Erro ao atualizar status.')
   } finally {
     saving.value = false
   }

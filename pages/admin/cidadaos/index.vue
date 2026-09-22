@@ -16,7 +16,7 @@
       <AdminExportButton endpoint="/admin/exports/citizens" filename="cidadaos" :filters="{ search }" />
     </div>
 
-    <div v-if="loading" class="text-muted text-sm">Carregando...</div>
+    <PageLoading v-if="loading" variant="table" />
 
     <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full text-sm">

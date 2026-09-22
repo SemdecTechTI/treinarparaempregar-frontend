@@ -46,7 +46,7 @@ async function exportFile(format: string) {
       ...props.filters,
     })
   } catch (e: any) {
-    await dialog.error(e?.message || 'Não foi possível exportar. Tente novamente.')
+    await dialog.toastError(e?.message || 'Não foi possível exportar. Tente novamente.')
   } finally {
     exporting.value = false
   }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <AdminHeader :title="post?.title || 'Editar artigo'" />
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
     <p v-else-if="error && !post" class="text-red-600 text-sm">{{ error }}</p>
 
     <form v-else-if="post" @submit.prevent="save" class="w-full max-w-4xl mx-auto space-y-6">
@@ -19,8 +19,6 @@
         <AdminActionButton to="/admin/blog" label="Voltar" variant="outline" size="md" />
         <AdminActionButton label="Remover" variant="danger" size="md" :disabled="saving" @click="remove" />
       </div>
-      <p v-if="message" class="text-sm text-accent">{{ message }}</p>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -35,7 +33,6 @@ const id = Number(route.params.id)
 const post = ref<any>(null)
 const loading = ref(true)
 const saving = ref(false)
-const message = ref('')
 const error = ref('')
 
 const form = reactive({
@@ -88,12 +85,10 @@ function openPublic() {
 
 async function save() {
   if (!form.content?.replace(/<[^>]+>/g, '').trim()) {
-    error.value = 'O conteúdo do artigo é obrigatório.'
+    await dialog.toastError('O conteúdo do artigo é obrigatório.')
     return
   }
   saving.value = true
-  message.value = ''
-  error.value = ''
   try {
     await useApi(`/admin/blog-posts/${id}`, {
       method: 'PUT',
@@ -104,9 +99,9 @@ async function save() {
         canonical_url: form.canonical_url || null,
       },
     })
-    message.value = 'Artigo atualizado com sucesso.'
+    await dialog.toastSuccess('Artigo atualizado.')
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }
@@ -123,7 +118,7 @@ async function remove() {
     await useApi(`/admin/blog-posts/${id}`, { method: 'DELETE' })
     await navigateTo('/admin/blog')
   } catch (e: any) {
-    error.value = e?.data?.message || 'Não foi possível remover.'
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
     saving.value = false
   }
 }

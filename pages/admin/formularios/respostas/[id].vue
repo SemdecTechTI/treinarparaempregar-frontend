@@ -4,7 +4,7 @@
       <AdminActionButton to="/admin/formularios/respostas" label="Voltar" variant="outline" size="md" />
     </AdminHeader>
 
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
     <div v-else-if="entry" class="max-w-3xl space-y-6">
       <div class="bg-white rounded-lg shadow p-6 text-sm space-y-2">
         <p><span class="text-muted">Formulário:</span> {{ entry.form?.title }}</p>

@@ -8,7 +8,6 @@
         <AdminActionButton :label="saving ? 'Salvando...' : 'Criar artigo'" variant="primary" size="md" :disabled="saving" submit />
         <AdminActionButton to="/admin/blog" label="Voltar" variant="outline" size="md" />
       </div>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -16,8 +15,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'blog' })
 
+const dialog = useDialog()
 const saving = ref(false)
-const error = ref('')
 
 const form = reactive({
   title: '',
@@ -36,11 +35,10 @@ const form = reactive({
 
 async function save() {
   if (!form.content?.replace(/<[^>]+>/g, '').trim()) {
-    error.value = 'O conteúdo do artigo é obrigatório.'
+    await dialog.toastError('O conteúdo do artigo é obrigatório.')
     return
   }
   saving.value = true
-  error.value = ''
   try {
     const created = await useApi<any>('/admin/blog-posts', {
       method: 'POST',
@@ -51,9 +49,10 @@ async function save() {
         canonical_url: form.canonical_url || null,
       },
     })
+    await dialog.toastSuccess('Artigo criado.')
     await navigateTo(`/admin/blog/${created.id}`)
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao criar artigo.'
+    await dialog.toastError(e?.data?.message || 'Erro ao criar artigo.')
   } finally {
     saving.value = false
   }

@@ -30,7 +30,6 @@
           <input v-model.number="newVideo.sort_order" type="number" min="0" class="input-modern" />
         </div>
       </div>
-      <p v-if="videoError" class="text-red-600 text-sm">{{ videoError }}</p>
       <button type="submit" class="btn text-sm py-2" :disabled="savingVideo">
         {{ savingVideo ? 'Salvando...' : 'Salvar vídeo' }}
       </button>
@@ -64,7 +63,6 @@ const emit = defineEmits<{ refreshed: [] }>()
 const videos = ref<any[]>([])
 const showForm = ref(false)
 const savingVideo = ref(false)
-const videoError = ref('')
 const dialog = useDialog()
 
 const newVideo = reactive({
@@ -89,7 +87,6 @@ async function loadVideos() {
 
 async function addVideo() {
   savingVideo.value = true
-  videoError.value = ''
   try {
     await useApi(`/admin/courses/${props.courseId}/videos`, {
       method: 'POST',
@@ -103,8 +100,9 @@ async function addVideo() {
     showForm.value = false
     await loadVideos()
     emit('refreshed')
+    await dialog.toastSuccess('Vídeo adicionado.')
   } catch (e: any) {
-    videoError.value = e?.data?.message || 'Erro ao adicionar vídeo.'
+    await dialog.toastError(e?.data?.message || 'Erro ao adicionar vídeo.')
   } finally {
     savingVideo.value = false
   }
@@ -120,8 +118,9 @@ async function removeVideo(video: any) {
     await useApi(`/admin/courses/${props.courseId}/videos/${video.id}`, { method: 'DELETE' })
     await loadVideos()
     emit('refreshed')
+    await dialog.toastSuccess('Vídeo removido.')
   } catch (e: any) {
-    videoError.value = e?.data?.message || 'Erro ao remover vídeo.'
+    await dialog.toastError(e?.data?.message || 'Erro ao remover vídeo.')
   }
 }
 

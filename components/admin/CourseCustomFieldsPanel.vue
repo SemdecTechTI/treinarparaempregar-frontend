@@ -37,7 +37,6 @@
         <input v-model="draft.required" type="checkbox" />
         Campo obrigatório na inscrição
       </label>
-      <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-2">
         <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar campo'" variant="primary" :disabled="saving" @click="saveField" />
         <AdminActionButton label="Cancelar" variant="outline" @click="cancelInlineForm" />
@@ -99,7 +98,6 @@ const showInlineForm = ref(false)
 const editingId = ref<number | null>(null)
 const editingLocalKey = ref<string | null>(null)
 const saving = ref(false)
-const formError = ref('')
 
 const draft = reactive({
   label: '',
@@ -142,7 +140,6 @@ function openNew() {
   editingId.value = null
   editingLocalKey.value = null
   resetDraft()
-  formError.value = ''
   showInlineForm.value = true
 }
 
@@ -154,7 +151,6 @@ function openEdit(f: CourseCustomFieldDraft) {
   draft.sort_order = f.sort_order ?? 0
   draft.required = f.required ?? false
   draft.optionsText = (f.options || []).join(', ')
-  formError.value = ''
   showInlineForm.value = true
 }
 
@@ -162,7 +158,6 @@ function cancelInlineForm() {
   showInlineForm.value = false
   editingId.value = null
   editingLocalKey.value = null
-  formError.value = ''
 }
 
 function buildOptions() {
@@ -188,12 +183,11 @@ function buildDraftPayload(): CourseCustomFieldDraft {
 
 async function saveField() {
   if (!draft.label.trim()) {
-    formError.value = 'Informe o label do campo.'
+    await dialog.toastError('Informe o label do campo.')
     return
   }
 
   saving.value = true
-  formError.value = ''
 
   try {
     const payload = buildDraftPayload()
@@ -227,8 +221,9 @@ async function saveField() {
       }
     }
     cancelInlineForm()
+    await dialog.toastSuccess(props.courseId ? 'Campo salvo.' : 'Campo adicionado.')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao salvar campo.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar campo.')
   } finally {
     saving.value = false
   }
@@ -246,7 +241,7 @@ async function removeField(f: CourseCustomFieldDraft) {
       await useApi(`/admin/custom-fields/${f.id}`, { method: 'DELETE' })
       await loadFields()
     } catch (e: any) {
-      await dialog.error(e?.data?.message || 'Não foi possível remover.')
+      await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
     }
   } else if (f._localKey) {
     pending.value = pending.value.filter(x => x._localKey !== f._localKey)

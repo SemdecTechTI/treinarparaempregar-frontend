@@ -30,9 +30,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading" class="border-t">
-            <td colspan="2" class="px-4 py-6 text-center text-muted">Carregando…</td>
-          </tr>
+          <template v-if="loading">
+            <tr v-for="n in 6" :key="n" class="border-t">
+              <td class="px-4 py-3"><div class="skeleton h-3 w-56" /></td>
+              <td class="px-4 py-3"><div class="skeleton h-3 w-28" /></td>
+            </tr>
+          </template>
           <tr v-else-if="!subscribers.length" class="border-t">
             <td colspan="2" class="px-4 py-6 text-center text-muted">Nenhum cadastro de newsletter ainda.</td>
           </tr>

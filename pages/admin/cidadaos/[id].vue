@@ -2,7 +2,7 @@
   <div>
     <AdminHeader :title="citizen?.name || 'Cidadão'" />
 
-    <div v-if="loading" class="text-muted text-sm">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
     <p v-else-if="error" class="text-red-600 text-sm">{{ error }}</p>
 
     <div v-else-if="citizen" class="space-y-6 max-w-4xl mx-auto w-full">

@@ -25,7 +25,6 @@
         <input v-model="form.active" type="checkbox" />
         Ativa (aparece nos filtros e no cadastro de cursos)
       </label>
-      <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-3">
         <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving" @click="save" />
         <AdminActionButton label="Cancelar" variant="outline" size="md" @click="cancelForm" />
@@ -93,7 +92,6 @@ const dialog = useDialog()
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const saving = ref(false)
-const formError = ref('')
 
 const form = reactive({
   name: '',
@@ -108,7 +106,6 @@ function openNew() {
   form.slug = ''
   form.sort_order = (rows.value.at(-1)?.sort_order ?? 0) + 1
   form.active = true
-  formError.value = ''
   showForm.value = true
 }
 
@@ -118,14 +115,12 @@ function openEdit(t: TrackRow) {
   form.slug = t.slug
   form.sort_order = t.sort_order
   form.active = t.active
-  formError.value = ''
   showForm.value = true
 }
 
 function cancelForm() {
   showForm.value = false
   editingId.value = null
-  formError.value = ''
 }
 
 async function load(page = meta.current_page) {
@@ -142,9 +137,8 @@ async function load(page = meta.current_page) {
 }
 
 async function save() {
-  formError.value = ''
   if (!form.name.trim()) {
-    formError.value = 'Informe o nome da trilha.'
+    await dialog.toastError('Informe o nome da trilha.')
     return
   }
   saving.value = true
@@ -160,11 +154,13 @@ async function save() {
     } else {
       await useApi('/admin/tracks', { method: 'POST', body })
     }
+    const updated = Boolean(editingId.value)
     cancelForm()
     clearTracksCache()
     await load()
+    await dialog.toastSuccess(updated ? 'Trilha atualizada.' : 'Trilha cadastrada.')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Não foi possível salvar.'
+    await dialog.toastError(e?.data?.message || 'Não foi possível salvar.')
   } finally {
     saving.value = false
   }
@@ -180,7 +176,7 @@ async function remove(t: TrackRow) {
     await useApi(`/admin/tracks/${t.id}`, { method: 'DELETE' })
     await load()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 

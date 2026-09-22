@@ -51,7 +51,6 @@
         placeholder="Nome do parceiro"
         @keyup.enter="createPartner"
       />
-      <p v-if="createError" class="text-xs text-red-600">{{ createError }}</p>
       <div class="flex flex-wrap gap-2">
         <button type="button" class="btn text-sm py-1.5" :disabled="creating" @click="createPartner">
           {{ creating ? 'Salvando...' : 'Criar e selecionar' }}
@@ -87,7 +86,7 @@ const open = ref(false)
 const showCreate = ref(false)
 const newName = ref('')
 const creating = ref(false)
-const createError = ref('')
+const dialog = useDialog()
 const root = ref<HTMLElement | null>(null)
 
 const selected = computed(() =>
@@ -115,10 +114,9 @@ function pickFirst() {
 }
 
 async function createPartner() {
-  createError.value = ''
   const name = newName.value.trim()
   if (!name) {
-    createError.value = 'Informe o nome do parceiro.'
+    await dialog.toastError('Informe o nome do parceiro.')
     return
   }
 
@@ -133,8 +131,9 @@ async function createPartner() {
     select(res.partner)
     showCreate.value = false
     newName.value = ''
+    await dialog.toastSuccess(res.created ? 'Parceiro cadastrado.' : 'Parceiro selecionado.')
   } catch (e: any) {
-    createError.value = e?.data?.message || 'Não foi possível criar o parceiro.'
+    await dialog.toastError(e?.data?.message || 'Não foi possível criar o parceiro.')
   } finally {
     creating.value = false
   }

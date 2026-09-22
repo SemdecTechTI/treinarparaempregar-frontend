@@ -96,7 +96,7 @@
           <h2 class="text-lg font-semibold text-primary">Vagas já cadastradas</h2>
           <button type="button" class="text-sm text-muted hover:text-primary" @click="showMyVacancies = false">Fechar</button>
         </div>
-        <p v-if="vacanciesLoading" class="text-sm text-muted">Carregando...</p>
+        <PageLoading v-if="vacanciesLoading" variant="list" :rows="3" />
         <p v-else-if="!myVacancies.length" class="text-sm text-muted">Nenhuma vaga cadastrada ainda.</p>
         <div v-else class="space-y-3">
           <div

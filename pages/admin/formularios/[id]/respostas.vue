@@ -21,7 +21,7 @@
       </button>
     </AdminHeader>
 
-    <div v-if="loading" class="text-muted text-sm">Carregando...</div>
+    <PageLoading v-if="loading" variant="table" />
     <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
@@ -93,7 +93,7 @@ async function exportFile(format: 'csv' | 'xlsx') {
     const date = new Date().toISOString().slice(0, 10)
     await downloadApiBlob(`/admin/forms/${formId}/export-csv`, `formulario-${formId}-respostas-${date}.${format}`, { format })
   } catch (e: any) {
-    await dialog.error(e?.message || 'Não foi possível exportar.')
+    await dialog.toastError(e?.message || 'Não foi possível exportar.')
   } finally {
     exporting.value = false
   }

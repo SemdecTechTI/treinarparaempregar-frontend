@@ -43,9 +43,7 @@
 
     <div v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</div>
 
-    <div v-if="loading" class="bg-white rounded-lg shadow px-6 py-10 text-center text-muted text-sm">
-      Carregando inscrições...
-    </div>
+    <PageLoading v-if="loading" variant="table" :columns="7" />
 
     <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full text-sm">

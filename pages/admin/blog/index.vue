@@ -92,7 +92,7 @@ async function remove(post: any) {
     await useApi(`/admin/blog-posts/${post.id}`, { method: 'DELETE' })
     await load()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div>
     <AdminHeader :title="course?.title || 'Editar curso'" />
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
     <p v-else-if="error && !course" class="text-red-600 text-sm">{{ error }}</p>
 
     <form v-else-if="course" @submit.prevent="save" class="w-full max-w-4xl mx-auto space-y-6">
@@ -36,8 +36,6 @@
         <AdminActionButton to="/admin/cursos" label="Voltar" variant="outline" size="md" />
         <AdminActionButton label="Remover" variant="danger" size="md" :disabled="saving" @click="remove" />
       </div>
-      <p v-if="message" class="text-sm text-accent">{{ message }}</p>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -56,7 +54,6 @@ const allCourses = ref<any[]>([])
 const documentTypes = ref<Record<string, string>>({})
 const loading = ref(true)
 const saving = ref(false)
-const message = ref('')
 const error = ref('')
 const selectedDocs = ref<string[]>([])
 const linkSource = ref<{ id: number; title: string; internal_title?: string | null } | null>(null)
@@ -176,8 +173,6 @@ onMounted(async () => {
 
 async function save() {
   saving.value = true
-  message.value = ''
-  error.value = ''
   try {
     const required_documents = selectedDocs.value.map(key => ({
       key,
@@ -226,12 +221,12 @@ async function save() {
     form.keep_export_link = !!(updated.export_group_id || updated.linked_courses?.length)
     form.link_course_id = ''
     linkSource.value = null
-    message.value = 'Curso atualizado com sucesso.'
+    await dialog.toastSuccess('Curso atualizado.')
     if (route.query.link_from) {
       await navigateTo({ path: `/admin/cursos/${id}`, query: {} }, { replace: true })
     }
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }
@@ -241,7 +236,7 @@ async function encerrar() {
   saving.value = true
   await useApi(`/admin/courses/${id}/close-enrollment`, { method: 'POST' })
   form.enrollment_closed = true
-  message.value = 'Inscrições encerradas.'
+  await dialog.toastSuccess('Inscrições encerradas.')
   saving.value = false
 }
 
@@ -259,13 +254,12 @@ async function toggleActive() {
   )) return
 
   saving.value = true
-  error.value = ''
   try {
     const res = await useApi<any>(`/admin/courses/${id}/toggle-active`, { method: 'POST' })
     course.value = { ...course.value, active: res.course?.active ?? !course.value.active }
-    message.value = res.message || (course.value.active ? 'Curso ativado.' : 'Curso inativado.')
+    await dialog.toastSuccess(res.message || (course.value.active ? 'Curso ativado.' : 'Curso inativado.'))
   } catch (e: any) {
-    error.value = e?.data?.message || 'Não foi possível alterar o status do curso.'
+    await dialog.toastError(e?.data?.message || 'Não foi possível alterar o status do curso.')
   } finally {
     saving.value = false
   }
@@ -278,12 +272,11 @@ async function remove() {
     danger: true,
   })) return
   saving.value = true
-  error.value = ''
   try {
     await useApi(`/admin/courses/${id}`, { method: 'DELETE' })
     await navigateTo('/admin/cursos')
   } catch (e: any) {
-    error.value = e?.data?.message || 'Não foi possível remover.'
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
     saving.value = false
   }
 }

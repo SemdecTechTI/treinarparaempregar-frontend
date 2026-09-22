@@ -7,7 +7,7 @@
 
     <div v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</div>
 
-    <div v-if="loading" class="text-muted text-sm">Carregando cursos...</div>
+    <PageLoading v-if="loading" variant="table" :columns="6" />
 
     <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full text-sm">
@@ -180,13 +180,13 @@ async function duplicateCourse(c: CourseRow) {
     const res = await useApi<any>(`/admin/courses/${c.id}/duplicate`, { method: 'POST' })
     const newId = res.course?.id
     if (!newId) {
-      await dialog.error('Curso duplicado, mas não foi possível abrir a edição.')
+      await dialog.toastError('Curso duplicado, mas não foi possível abrir a edição.')
       await loadRows()
       return
     }
     await navigateTo(`/admin/cursos/${newId}?link_from=${c.id}`)
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível duplicar o curso.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível duplicar o curso.')
   }
 }
 
@@ -207,7 +207,7 @@ async function toggleActive(c: CourseRow) {
     await useApi(`/admin/courses/${c.id}/toggle-active`, { method: 'POST' })
     await loadRows()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível alterar o status do curso.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível alterar o status do curso.')
   }
 }
 
@@ -221,7 +221,7 @@ async function removeCourse(c: CourseRow) {
     await useApi(`/admin/courses/${c.id}`, { method: 'DELETE' })
     await loadRows()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 

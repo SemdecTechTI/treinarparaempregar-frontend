@@ -6,12 +6,16 @@
       Visão do perfil <span class="font-medium text-primary">{{ data.profile_label }}</span>
     </p>
 
-    <div v-if="!hasAnySection" class="bg-white rounded-lg shadow p-8 text-center text-muted">
+    <PageLoading v-if="loading" variant="detail" />
+    <div v-else-if="loadError" class="bg-white rounded-lg shadow p-8 text-center text-red-600 text-sm">
+      {{ loadError }}
+    </div>
+    <div v-else-if="!hasAnySection" class="bg-white rounded-lg shadow p-8 text-center text-muted">
       Seu perfil ainda não tem módulos liberados. Peça a um administrador para ajustar o acesso.
     </div>
 
     <!-- Qualificação / Inscrições -->
-    <section v-if="data?.enrollments" class="mb-10">
+    <section v-if="!loading && data?.enrollments" class="mb-10">
       <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
         <div>
           <h2 class="text-lg font-semibold text-primary">Qualificação</h2>
@@ -81,7 +85,7 @@
     </section>
 
     <!-- Captação / Empresas e vagas -->
-    <section v-if="data?.capture">
+    <section v-if="!loading && data?.capture">
       <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
         <div>
           <h2 class="text-lg font-semibold text-primary">Captação</h2>
@@ -141,11 +145,13 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 
 const auth = useAuthStore()
 const data = ref<any>(null)
+const loading = ref(true)
+const loadError = ref('')
 
 const headerTitle = computed(() => {
   const label = data.value?.profile_label
-  if (label === 'Captação') return 'Dashboard — Captação'
-  if (label === 'Qualificação') return 'Dashboard — Qualificação'
+  if (label === 'Captação') return 'Dashboard: Captação'
+  if (label === 'Qualificação') return 'Dashboard: Qualificação'
   return 'Dashboard'
 })
 
@@ -164,6 +170,14 @@ function formatDateTime(value?: string) {
 }
 
 onMounted(async () => {
-  data.value = await useApi('/admin/dashboard')
+  loading.value = true
+  loadError.value = ''
+  try {
+    data.value = await useApi('/admin/dashboard')
+  } catch (e: any) {
+    loadError.value = e?.data?.message || 'Não foi possível carregar o dashboard.'
+  } finally {
+    loading.value = false
+  }
 })
 </script>

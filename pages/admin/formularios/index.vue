@@ -18,7 +18,7 @@
     </div>
 
     <div v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</div>
-    <div v-if="loading" class="text-muted text-sm">Carregando...</div>
+    <PageLoading v-if="loading" variant="table" />
 
     <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full text-sm">
@@ -132,7 +132,7 @@ async function duplicate(f: any) {
     const copy = await useApi<any>(`/admin/forms/${f.id}/duplicate`, { method: 'POST' })
     await navigateTo(`/admin/formularios/${copy.id}/campos`)
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível duplicar.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível duplicar.')
   }
 }
 
@@ -146,7 +146,7 @@ async function remove(f: any) {
     await useApi(`/admin/forms/${f.id}`, { method: 'DELETE' })
     await load()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 

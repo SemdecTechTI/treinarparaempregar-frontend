@@ -5,6 +5,7 @@
     </AdminHeader>
 
     <p v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</p>
+    <PageLoading v-else-if="!company" variant="form" />
 
     <div v-if="company" class="space-y-6">
       <AdminFormPanel title="Perfil da empresa">
@@ -91,7 +92,6 @@
             </p>
           </div>
         </div>
-        <p v-if="saveError" class="text-sm text-red-600 mt-3">{{ saveError }}</p>
         <div class="mt-4">
           <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar cadastro'" variant="primary" size="md" :disabled="saving" @click="save" />
         </div>
@@ -146,7 +146,6 @@ const route = useRoute()
 const id = computed(() => Number(route.params.id))
 const company = ref<Company | null>(null)
 const loadError = ref('')
-const saveError = ref('')
 const saving = ref(false)
 const dialog = useDialog()
 
@@ -197,7 +196,6 @@ async function load() {
 
 async function save() {
   saving.value = true
-  saveError.value = ''
   try {
     form.website = normalizeWebsiteUrl(form.website)
     company.value = await useApi<Company>(`/admin/companies/${id.value}`, {
@@ -207,7 +205,7 @@ async function save() {
     await dialog.toastSuccess('Cadastro atualizado.')
     await load()
   } catch (e: any) {
-    saveError.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }

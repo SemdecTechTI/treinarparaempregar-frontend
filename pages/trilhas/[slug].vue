@@ -9,7 +9,7 @@
       </div>
     </section>
     <section class="container mx-auto px-4 pb-16">
-      <div v-if="loading" class="text-center py-12 text-muted">Carregando...</div>
+      <PageLoading v-if="loading" variant="cards" :rows="6" />
       <div v-else-if="!courses.length" class="text-center py-16 card-modern">Nenhum curso nesta trilha.</div>
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <CourseCard v-for="course in courses" :key="course.id" :course="course" />

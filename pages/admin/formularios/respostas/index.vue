@@ -5,7 +5,7 @@
       <input v-model="search" type="search" placeholder="Buscar..." class="input-modern flex-1" @keyup.enter="load(1)" />
       <button type="button" class="btn text-sm py-2" @click="load(1)">Buscar</button>
     </div>
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="table" />
     <div v-else class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full text-sm">
         <thead class="bg-gray-50">

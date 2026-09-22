@@ -5,6 +5,7 @@
     </AdminHeader>
 
     <p v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</p>
+    <PageLoading v-else-if="!vacancy" variant="detail" />
 
     <div v-if="vacancy" class="space-y-6">
       <div class="bg-white rounded-lg shadow p-6 flex flex-wrap items-center justify-between gap-4">
@@ -110,7 +111,7 @@ async function saveStatus() {
     })
     await dialog.toastSuccess('Status atualizado.')
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Erro ao atualizar status.')
+    await dialog.toastError(e?.data?.message || 'Erro ao atualizar status.')
   } finally {
     savingStatus.value = false
   }
@@ -122,7 +123,7 @@ async function remove() {
     await useApi(`/admin/job-vacancies/${id.value}`, { method: 'DELETE' })
     await navigateTo('/admin/vagas-emprego')
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Erro ao remover.')
+    await dialog.toastError(e?.data?.message || 'Erro ao remover.')
   }
 }
 

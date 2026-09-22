@@ -18,8 +18,6 @@
         <AdminActionButton :label="saving ? 'Criando...' : 'Criar curso'" variant="primary" size="md" :disabled="saving" submit />
         <AdminActionButton to="/admin/cursos" label="Voltar" variant="outline" size="md" />
       </div>
-      <p v-if="message" class="text-sm text-accent">{{ message }}</p>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -35,9 +33,8 @@ const allCourses = ref<any[]>([])
 const documentTypes = ref<Record<string, string>>({})
 const selectedDocs = ref<string[]>([])
 const pendingCustomFields = ref<CourseCustomFieldDraft[]>([])
+const dialog = useDialog()
 const saving = ref(false)
-const message = ref('')
-const error = ref('')
 
 const courseOptions = computed(() =>
   allCourses.value.map((c: any) => ({ id: c.id, title: c.title, internal_title: c.internal_title })),
@@ -93,14 +90,12 @@ onMounted(async () => {
       form.track = tracks.value[0].slug
     }
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao carregar dados do formulário.'
+    await dialog.toastError(e?.data?.message || 'Erro ao carregar dados do formulário.')
   }
 })
 
 async function save() {
   saving.value = true
-  message.value = ''
-  error.value = ''
   try {
     const required_documents = selectedDocs.value.map(key => ({
       key,
@@ -135,9 +130,10 @@ async function save() {
         },
       })
     }
+    await dialog.toastSuccess('Curso criado.')
     await navigateTo(`/admin/cursos/${created.id}`)
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao criar curso.'
+    await dialog.toastError(e?.data?.message || 'Erro ao criar curso.')
   } finally {
     saving.value = false
   }

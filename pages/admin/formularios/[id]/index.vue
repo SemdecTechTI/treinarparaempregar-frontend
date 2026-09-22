@@ -4,7 +4,8 @@
       <NuxtLink v-if="form" :to="`/formulario/${form.slug}`" target="_blank" class="btn btn-outline text-sm py-2">Ver público</NuxtLink>
     </AdminHeader>
 
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
+    <p v-else-if="error && !form" class="text-red-600 text-sm">{{ error }}</p>
     <form v-else-if="form" @submit.prevent="save" class="max-w-3xl mx-auto space-y-6">
       <div class="bg-white rounded-lg shadow p-6">
         <AdminFormSettingsFields :form="editForm" />
@@ -19,8 +20,6 @@
         <AdminActionButton to="/admin/formularios" label="Voltar" variant="outline" size="md" />
         <AdminActionButton label="Remover" variant="danger" size="md" @click="remove" />
       </div>
-      <p v-if="message" class="text-sm text-accent">{{ message }}</p>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -38,7 +37,6 @@ const id = Number(route.params.id)
 const form = ref<any>(null)
 const loading = ref(true)
 const saving = ref(false)
-const message = ref('')
 const error = ref('')
 
 const editForm = reactive({
@@ -106,8 +104,6 @@ onMounted(async () => {
 
 async function save() {
   saving.value = true
-  message.value = ''
-  error.value = ''
   try {
     form.value = await useApi(`/admin/forms/${id}`, {
       method: 'PUT',
@@ -119,9 +115,9 @@ async function save() {
       },
     })
     fillForm(form.value)
-    message.value = 'Formulário atualizado.'
+    await dialog.toastSuccess('Formulário atualizado.')
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }
@@ -137,7 +133,7 @@ async function remove() {
     await useApi(`/admin/forms/${id}`, { method: 'DELETE' })
     await navigateTo('/admin/formularios')
   } catch (e: any) {
-    error.value = e?.data?.message || 'Não foi possível remover.'
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 </script>

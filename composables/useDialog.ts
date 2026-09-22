@@ -47,17 +47,25 @@ export function useDialog() {
     await alert(message, title, 'info')
   }
 
-  async function toastSuccess(message: string) {
+  async function toast(message: string, icon: SweetAlertIcon = 'success') {
     await Swal.fire({
       ...baseOptions(),
-      icon: 'success',
+      icon,
       title: message,
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      timer: 2200,
+      timer: icon === 'error' ? 3600 : 2200,
       timerProgressBar: true,
     })
+  }
+
+  async function toastSuccess(message: string) {
+    await toast(message, 'success')
+  }
+
+  async function toastError(message: string) {
+    await toast(message, 'error')
   }
 
   async function confirm(
@@ -119,7 +127,9 @@ export function useDialog() {
     success,
     error,
     info,
+    toast,
     toastSuccess,
+    toastError,
     confirm,
     prompt,
     copyFallback,

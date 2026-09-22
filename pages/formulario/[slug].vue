@@ -9,8 +9,8 @@
   <div v-else-if="error" class="min-h-screen flex items-center justify-center p-8 text-center">
     <p class="text-muted">{{ error }}</p>
   </div>
-  <div v-else class="min-h-screen flex items-center justify-center">
-    <p class="text-muted">Carregando formulário...</p>
+  <div v-else class="min-h-screen flex items-center justify-center px-4">
+    <PageLoading variant="page" class="w-full" />
   </div>
 </template>
 

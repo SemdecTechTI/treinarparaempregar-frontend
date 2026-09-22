@@ -1,7 +1,8 @@
 <template>
   <div>
     <AdminHeader title="Editar pergunta" />
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
+    <p v-else-if="error && !field" class="text-red-600 text-sm">{{ error }}</p>
     <form v-else-if="field" @submit.prevent="save" class="max-w-2xl mx-auto space-y-6">
       <div class="bg-white rounded-lg shadow p-6 space-y-4">
         <div>
@@ -56,7 +57,6 @@
         <AdminActionButton label="Salvar" variant="primary" size="md" submit />
         <AdminActionButton :to="`/admin/formularios/${formId}/campos`" label="Voltar" variant="outline" size="md" />
       </div>
-      <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -65,6 +65,7 @@
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'forms' })
 
 const route = useRoute()
+const dialog = useDialog()
 const formId = Number(route.params.id)
 const fieldId = Number(route.params.fieldId)
 
@@ -121,7 +122,6 @@ onMounted(async () => {
 })
 
 async function save() {
-  error.value = ''
   try {
     await useApi(`/admin/forms/${formId}/fields/${fieldId}`, {
       method: 'PUT',
@@ -130,9 +130,10 @@ async function save() {
         conditional_field_id: form.conditional_enabled ? Number(form.conditional_field_id) : null,
       },
     })
+    await dialog.toastSuccess('Pergunta atualizada.')
     await navigateTo(`/admin/formularios/${formId}/campos`)
   } catch (e: any) {
-    error.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   }
 }
 </script>

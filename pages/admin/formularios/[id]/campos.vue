@@ -4,7 +4,7 @@
       <AdminActionButton :to="`/admin/formularios/${id}`" label="Ajustes" variant="outline" size="md" />
     </AdminHeader>
 
-    <div v-if="loading" class="text-muted">Carregando...</div>
+    <PageLoading v-if="loading" variant="form" />
     <template v-else-if="form">
       <AdminFormPanel title="Nova pergunta" class="mb-6">
         <div class="grid md:grid-cols-2 gap-4">
@@ -34,7 +34,6 @@
         <div class="mt-4 flex gap-3">
           <AdminActionButton label="Adicionar pergunta" variant="primary" size="md" :disabled="creating" @click="createField" />
         </div>
-        <p v-if="createError" class="text-sm text-red-600 mt-2">{{ createError }}</p>
       </AdminFormPanel>
 
       <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -85,7 +84,6 @@ const fields = ref<any[]>([])
 const fieldTypes = ref<Record<string, string>>({})
 const loading = ref(true)
 const creating = ref(false)
-const createError = ref('')
 
 const newField = reactive({
   type: 'text',
@@ -119,7 +117,6 @@ onMounted(async () => {
 
 async function createField() {
   creating.value = true
-  createError.value = ''
   try {
     const field = await useApi<any>(`/admin/forms/${id}/fields`, {
       method: 'POST',
@@ -130,8 +127,9 @@ async function createField() {
     newField.description = ''
     newField.options_text = ''
     newField.required = false
+    await dialog.toastSuccess('Pergunta adicionada.')
   } catch (e: any) {
-    createError.value = e?.data?.message || 'Erro ao criar pergunta.'
+    await dialog.toastError(e?.data?.message || 'Erro ao criar pergunta.')
   } finally {
     creating.value = false
   }

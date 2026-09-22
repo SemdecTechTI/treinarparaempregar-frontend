@@ -34,7 +34,6 @@
           <button type="button" class="text-xs text-muted underline" @click="form.permissions = []">Desmarcar todos</button>
         </div>
       </div>
-      <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-3">
         <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving" @click="save" />
         <AdminActionButton label="Cancelar" variant="outline" size="md" @click="cancelForm" />
@@ -115,7 +114,6 @@ const loadError = ref('')
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const saving = ref(false)
-const formError = ref('')
 
 const form = reactive({
   name: '',
@@ -148,7 +146,6 @@ function openNew() {
   form.name = ''
   form.description = ''
   form.permissions = []
-  formError.value = ''
   showForm.value = true
 }
 
@@ -157,7 +154,6 @@ function openEdit(p: AdminProfile) {
   form.name = p.name
   form.description = p.description ?? ''
   form.permissions = [...(p.permissions ?? [])]
-  formError.value = ''
   showForm.value = true
 }
 
@@ -168,13 +164,13 @@ function cancelForm() {
 
 async function save() {
   saving.value = true
-  formError.value = ''
   try {
     const body = {
       name: form.name,
       description: form.description || null,
       permissions: form.permissions,
     }
+    const updated = Boolean(editingId.value)
     if (editingId.value) {
       await useApi(`/admin/profiles/${editingId.value}`, { method: 'PUT', body })
     } else {
@@ -182,8 +178,9 @@ async function save() {
     }
     showForm.value = false
     await load()
+    await dialog.toastSuccess(updated ? 'Perfil atualizado.' : 'Perfil cadastrado.')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao salvar perfil.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar perfil.')
   } finally {
     saving.value = false
   }
@@ -199,7 +196,7 @@ async function remove(p: AdminProfile) {
     await useApi(`/admin/profiles/${p.id}`, { method: 'DELETE' })
     await load()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 

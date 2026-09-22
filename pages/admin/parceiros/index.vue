@@ -39,7 +39,6 @@
         <label class="form-label">Telefone</label>
         <input v-model="form.contact_phone" type="text" class="input-modern" />
       </div>
-      <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-3">
         <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving" @click="save" />
         <AdminActionButton label="Cancelar" variant="outline" size="md" @click="cancelForm" />
@@ -125,7 +124,6 @@ const dialog = useDialog()
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const saving = ref(false)
-const formError = ref('')
 
 const form = reactive({
   name: '',
@@ -162,7 +160,6 @@ function openNew() {
   form.contact_email = ''
   form.contact_phone = ''
   form.logo = ''
-  formError.value = ''
   showForm.value = true
 }
 
@@ -173,7 +170,6 @@ function openEdit(p: any) {
   form.contact_email = p.contact_email || ''
   form.contact_phone = p.contact_phone || ''
   form.logo = p.logo || ''
-  formError.value = ''
   showForm.value = true
 }
 
@@ -184,11 +180,10 @@ function cancelForm() {
 
 async function save() {
   if (!form.name.trim()) {
-    formError.value = 'Informe o nome do parceiro.'
+    await dialog.toastError('Informe o nome do parceiro.')
     return
   }
   saving.value = true
-  formError.value = ''
   try {
     await ensureSanctumCsrf()
     const body = {
@@ -205,8 +200,9 @@ async function save() {
     }
     showForm.value = false
     await load()
+    await dialog.toastSuccess(editingId.value ? 'Parceiro atualizado.' : 'Parceiro cadastrado.')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }
@@ -223,7 +219,7 @@ async function remove(p: any) {
     await useApi(`/admin/partners/${p.id}`, { method: 'DELETE' })
     await load()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível excluir.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível excluir.')
   }
 }
 

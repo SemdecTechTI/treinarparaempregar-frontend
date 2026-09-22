@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto px-4 py-8 pb-20">
-    <div v-if="loading" class="text-center py-12">Carregando vídeo...</div>
+    <PageLoading v-if="loading" variant="media" />
 
     <div v-else-if="!video || !course" class="text-center py-12">
       <p class="text-muted mb-4">Vídeo não encontrado ou você precisa se inscrever no curso.</p>

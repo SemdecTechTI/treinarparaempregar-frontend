@@ -37,7 +37,6 @@
         <input v-model="form.required" type="checkbox" />
         Campo obrigatório na inscrição
       </label>
-      <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
       <div class="flex flex-wrap gap-3">
         <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving" @click="save" />
         <AdminActionButton label="Cancelar" variant="outline" size="md" @click="cancelForm" />
@@ -95,7 +94,6 @@ const dialog = useDialog()
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const saving = ref(false)
-const formError = ref('')
 const optionsText = ref('')
 
 const form = reactive({
@@ -129,7 +127,6 @@ function openNew() {
   form.sort_order = 0
   form.required = false
   optionsText.value = ''
-  formError.value = ''
   showForm.value = true
 }
 
@@ -140,7 +137,6 @@ function openEdit(f: any) {
   form.sort_order = f.sort_order ?? 0
   form.required = f.required ?? false
   optionsText.value = (f.options || []).join(', ')
-  formError.value = ''
   showForm.value = true
 }
 
@@ -171,9 +167,9 @@ function buildBody() {
 
 async function save() {
   saving.value = true
-  formError.value = ''
   try {
     const body = buildBody()
+    const updated = Boolean(editingId.value)
     if (editingId.value) {
       await useApi(`/admin/custom-fields/${editingId.value}`, { method: 'PUT', body })
     } else {
@@ -181,8 +177,9 @@ async function save() {
     }
     showForm.value = false
     await load()
+    await dialog.toastSuccess(updated ? 'Campo atualizado.' : 'Campo cadastrado.')
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }
@@ -198,7 +195,7 @@ async function remove(f: any) {
     await useApi(`/admin/custom-fields/${f.id}`, { method: 'DELETE' })
     await load()
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover.')
   }
 }
 

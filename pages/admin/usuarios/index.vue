@@ -211,7 +211,7 @@ async function save() {
   try {
     const isAdmin = form.access === 'admin'
     if (!isAdmin && !form.access) {
-      formError.value = 'Selecione um perfil de acesso.'
+      await dialog.toastError('Selecione um perfil de acesso.')
       return
     }
 
@@ -232,11 +232,11 @@ async function save() {
       await dialog.toastSuccess('Usuário atualizado.')
     } else {
       if (existingAccount.value?.staff) {
-        formError.value = 'Este e-mail já tem acesso ao painel.'
+        await dialog.toastError('Este e-mail já tem acesso ao painel.')
         return
       }
       if (!existingAccount.value?.exists && !form.password) {
-        formError.value = 'Senha é obrigatória para novo usuário.'
+        await dialog.toastError('Senha é obrigatória para novo usuário.')
         return
       }
       if (existingAccount.value?.exists) {
@@ -248,11 +248,11 @@ async function save() {
       await dialog.toastSuccess(
         created?.promoted
           ? 'Acesso concedido. A pessoa continua com a mesma senha e receberá um e-mail.'
-          : 'Usuário criado — credenciais enviadas por e-mail.',
+          : 'Usuário criado. Credenciais enviadas por e-mail.',
       )
     }
   } catch (e: any) {
-    formError.value = e?.data?.message || 'Erro ao salvar.'
+    await dialog.toastError(e?.data?.message || 'Erro ao salvar.')
   } finally {
     saving.value = false
   }
@@ -277,7 +277,7 @@ async function remove(u: any) {
     await load()
     await dialog.toastSuccess('Acesso removido. A pessoa agora aparece em Cidadãos.')
   } catch (e: any) {
-    await dialog.error(e?.data?.message || 'Não foi possível remover o acesso.')
+    await dialog.toastError(e?.data?.message || 'Não foi possível remover o acesso.')
   }
 }
 
