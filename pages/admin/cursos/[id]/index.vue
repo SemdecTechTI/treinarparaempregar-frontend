@@ -51,7 +51,7 @@ const course = ref<any>(null)
 const partners = ref<any[]>([])
 const tracks = ref<Array<{ id: number; name: string; slug: string; active?: boolean }>>([])
 const allCourses = ref<any[]>([])
-const documentTypes = ref<Record<string, string>>({})
+const documentTypes = ref<Record<string, import('~/utils/enrollmentDocuments').EnrollmentDocumentType | string>>({})
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
@@ -174,11 +174,18 @@ onMounted(async () => {
 async function save() {
   saving.value = true
   try {
-    const required_documents = selectedDocs.value.map(key => ({
-      key,
-      label: documentTypes.value[key],
-      required: true,
-    }))
+    const required_documents = selectedDocs.value.map((key) => {
+      const entry = documentTypes.value[key]
+      const label = typeof entry === 'string' ? entry : entry?.label || key
+      const requiredDefault = typeof entry === 'string' ? true : entry?.required_default !== false
+      const maxKb = typeof entry === 'string' ? 10240 : entry?.max_kb || 10240
+      return {
+        key,
+        label,
+        required: requiredDefault,
+        max_kb: maxKb,
+      }
+    })
     const body: Record<string, unknown> = {
       partner_id: Number(form.partner_id),
       title: form.title,

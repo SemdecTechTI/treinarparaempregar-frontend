@@ -1,6 +1,13 @@
 <template>
   <div>
     <AdminHeader :title="pageTitle">
+      <AdminExportButton
+        v-if="enrollment"
+        :filters="{ enrollment_id: enrollment.id }"
+        :filename="singleExportFilename"
+        :formats="['xlsx']"
+        xlsx-label="Exportar Excel"
+      />
       <AdminActionButton
         v-if="enrollment?.user?.id"
         :to="`/admin/cidadaos/${enrollment.user.id}`"
@@ -33,10 +40,12 @@
             <div><dt class="text-muted">CPF</dt><dd>{{ display(enrollment.user?.cpf) }}</dd></div>
             <div><dt class="text-muted">Email</dt><dd>{{ display(enrollment.user?.email) }}</dd></div>
             <div><dt class="text-muted">Telefone</dt><dd>{{ display(enrollment.user?.phone) }}</dd></div>
+            <div><dt class="text-muted">Telefone de emergência</dt><dd>{{ display(enrollment.user?.emergency_phone) }}</dd></div>
             <div><dt class="text-muted">Nascimento</dt><dd>{{ formatDate(enrollment.user?.birth_date) }}</dd></div>
             <div><dt class="text-muted">Gênero</dt><dd>{{ display(enrollment.user?.gender) }}</dd></div>
             <div><dt class="text-muted">Raça</dt><dd>{{ display(enrollment.user?.race) }}</dd></div>
             <div><dt class="text-muted">Escolaridade</dt><dd>{{ display(enrollment.user?.education) }}</dd></div>
+            <div><dt class="text-muted">Prefeitura-bairro</dt><dd>{{ display(enrollment.user?.prefeitura_bairro) }}</dd></div>
             <div class="col-span-2"><dt class="text-muted">Endereço</dt><dd>{{ fullAddress }}</dd></div>
           </dl>
         </div>
@@ -169,6 +178,17 @@ const dialog = useDialog()
 const pageTitle = computed(() => {
   const title = enrollment.value?.enrollable?.title
   return title ? `Inscrição: ${title}` : 'Detalhe da inscrição'
+})
+
+const singleExportFilename = computed(() => {
+  const name = String(enrollment.value?.user?.name || 'inscricao')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase()
+    .slice(0, 40)
+  return `inscricao_${enrollment.value?.id || id}_${name || 'cidadao'}`
 })
 
 const documents = computed(() => enrollment.value?.documents || [])

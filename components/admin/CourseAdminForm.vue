@@ -187,18 +187,26 @@
           <input v-model="form.allow_simultaneous_enrollment" type="checkbox" />
           Permitir inscrição simultânea em outros cursos abertos
         </label>
-        <label class="flex items-center gap-2 text-sm">
-          <input v-model="form.requires_documents" type="checkbox" />
-          Exigir envio de documentos na inscrição
-        </label>
       </div>
-      <div v-if="form.requires_documents" class="md:col-span-2">
-        <p class="form-label mb-2">Documentos necessários</p>
-        <p v-if="!Object.keys(documentTypes).length" class="text-sm text-muted">Nenhum tipo de documento configurado.</p>
+      <div class="md:col-span-2">
+        <p class="form-label mb-1">Documentos na inscrição</p>
+        <p class="text-xs text-muted mb-3">
+          Marque o que a pessoa precisa enviar ao se inscrever. Se nenhum estiver marcado, a inscrição não pede arquivo.
+        </p>
         <div class="grid sm:grid-cols-2 gap-2">
-          <label v-for="(label, key) in documentTypes" :key="key" class="flex items-center gap-2 text-sm">
-            <input type="checkbox" :value="key" v-model="selectedDocs" />
-            {{ label }}
+          <label
+            v-for="(entry, key) in catalog"
+            :key="key"
+            class="flex items-start gap-2 text-sm border border-slate-200 rounded-xl px-3 py-2"
+          >
+            <input type="checkbox" :value="key" v-model="selectedDocs" class="mt-1" />
+            <span>
+              <span class="font-medium">{{ entry.label }}</span>
+              <span class="block text-xs text-muted">
+                Máximo {{ formatMaxUpload(entry.max_kb) }}
+                <template v-if="!entry.required_default">. Opcional</template>
+              </span>
+            </span>
           </label>
         </div>
       </div>
@@ -208,19 +216,21 @@
       v-if="showEnrollment"
       :course-id="courseId"
       v-model:pending="pendingCustomFields"
+      v-model:pending-library="pendingLibraryFields"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { CourseCustomFieldDraft } from '~/types/custom-field'
+import type { CourseCustomFieldDraft, LibraryFieldAttachment } from '~/types/custom-field'
+import { formatMaxUpload, resolveDocumentTypes, type EnrollmentDocumentType } from '~/utils/enrollmentDocuments'
 
 const props = withDefaults(
   defineProps<{
     form: Record<string, any>
     partners: any[]
     tracks?: Array<{ id?: number; name: string; slug: string; active?: boolean }>
-    documentTypes: Record<string, string>
+    documentTypes: Record<string, EnrollmentDocumentType | string>
     showEnrollment?: boolean
     courseId?: number | null
     linkedCourses?: Array<{ id: number; title: string; internal_title?: string | null }>
@@ -255,4 +265,11 @@ const trackOptions = computed(() => {
 
 const selectedDocs = defineModel<string[]>('selectedDocs', { default: () => [] })
 const pendingCustomFields = defineModel<CourseCustomFieldDraft[]>('pendingCustomFields', { default: () => [] })
+const pendingLibraryFields = defineModel<LibraryFieldAttachment[]>('pendingLibraryFields', { default: () => [] })
+
+const catalog = computed(() => resolveDocumentTypes(props.documentTypes))
+
+watch(selectedDocs, (keys) => {
+  props.form.requires_documents = keys.length > 0
+}, { deep: true })
 </script>

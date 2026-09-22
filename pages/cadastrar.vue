@@ -187,6 +187,10 @@
               <label class="form-label">Telefone *</label>
               <input v-model="form.phone" v-maska data-maska="(##) #####-####" required class="input-modern" />
             </div>
+            <div class="md:col-span-2">
+              <label class="form-label">Telefone de emergência / pessoa de contato *</label>
+              <input v-model="form.emergency_phone" v-maska data-maska="(##) #####-####" required class="input-modern" />
+            </div>
             <div>
               <label class="form-label">Senha *</label>
               <input v-model="form.password" type="password" required minlength="8" class="input-modern" placeholder="Mínimo 8 caracteres" />
@@ -204,8 +208,8 @@
           emoji="📍"
           icon-bg="bg-gradient-to-br from-h5 to-h6"
         >
-          <div class="grid grid-cols-1 md:grid-cols-6 gap-5">
-            <div class="md:col-span-2">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+            <div class="md:col-span-3">
               <label class="form-label">CEP *</label>
               <input
                 v-model="form.cep"
@@ -218,31 +222,38 @@
               <p v-if="cepLoading" class="text-xs text-muted mt-1">Buscando endereço...</p>
               <p v-if="cepError" class="text-xs text-red-500 mt-1">{{ cepError }}</p>
             </div>
-            <div class="md:col-span-4">
+            <div class="md:col-span-9">
               <label class="form-label">Endereço *</label>
               <input v-model="form.address" type="text" required class="input-modern" />
             </div>
-            <div class="md:col-span-2">
+            <div class="md:col-span-3">
               <label class="form-label">Número da residência *</label>
               <input v-model="form.number" type="text" required class="input-modern" />
             </div>
-            <div class="md:col-span-2">
+            <div class="md:col-span-5">
               <label class="form-label">Bairro *</label>
               <input v-model="form.neighborhood" type="text" required class="input-modern" />
             </div>
-            <div class="md:col-span-2">
+            <div class="md:col-span-4">
               <label class="form-label">Complemento</label>
               <input v-model="form.complement" type="text" class="input-modern" placeholder="Apto, bloco..." />
             </div>
-            <div class="md:col-span-3">
-              <label class="form-label">Cidade *</label>
-              <input v-model="form.city" type="text" required class="input-modern" />
-            </div>
-            <div class="md:col-span-3">
+            <div class="md:col-span-2">
               <label class="form-label">Estado *</label>
               <select v-model="form.state" required class="input-modern">
                 <option value="">UF</option>
                 <option v-for="uf in ufs" :key="uf" :value="uf">{{ uf }}</option>
+              </select>
+            </div>
+            <div class="md:col-span-4">
+              <label class="form-label">Cidade *</label>
+              <input v-model="form.city" type="text" required class="input-modern" />
+            </div>
+            <div class="md:col-span-6">
+              <label class="form-label">Prefeitura-bairro *</label>
+              <select v-model="form.prefeitura_bairro" required class="input-modern">
+                <option value="">Selecione...</option>
+                <option v-for="opt in PREFEITURAS_BAIRRO" :key="opt" :value="opt">{{ opt }}</option>
               </select>
             </div>
           </div>
@@ -281,6 +292,7 @@ import {
   ESCOLARIDADES,
   IDENTIDADES_GENERO,
   ORIENTACOES_SEXUAIS,
+  PREFEITURAS_BAIRRO,
   RACAS,
   SEXOS,
 } from '~/utils/citizenProfile'
@@ -324,10 +336,12 @@ const form = reactive({
   has_disability: 'nao',
   disability_types: [] as string[],
   phone: '',
+  emergency_phone: '',
   cep: '',
   address: '',
   number: '',
   neighborhood: '',
+  prefeitura_bairro: '',
   city: '',
   state: '',
   complement: '',

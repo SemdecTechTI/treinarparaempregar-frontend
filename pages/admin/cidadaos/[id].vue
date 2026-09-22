@@ -26,6 +26,10 @@
             <dd>{{ p('phone') }}</dd>
           </div>
           <div>
+            <dt class="text-muted">Telefone de emergência</dt>
+            <dd>{{ p('emergency_phone') }}</dd>
+          </div>
+          <div>
             <dt class="text-muted">CPF</dt>
             <dd>{{ p('cpf') }}</dd>
           </div>
@@ -98,6 +102,10 @@
           <div>
             <dt class="text-muted">Cadastro na plataforma</dt>
             <dd>{{ formatDateTime(citizen.created_at) }}</dd>
+          </div>
+          <div>
+            <dt class="text-muted">Prefeitura-bairro</dt>
+            <dd>{{ p('prefeitura_bairro') }}</dd>
           </div>
           <div class="sm:col-span-2">
             <dt class="text-muted">Endereço</dt>

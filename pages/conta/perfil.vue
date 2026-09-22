@@ -150,9 +150,15 @@
       emoji="📞"
       icon-bg="bg-gradient-to-br from-accent to-h3"
     >
-      <div>
-        <label class="form-label">Telefone *</label>
-        <input v-model="form.phone" v-maska data-maska="(##) #####-####" required class="input-modern" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="form-label">Telefone *</label>
+          <input v-model="form.phone" v-maska data-maska="(##) #####-####" required class="input-modern" />
+        </div>
+        <div>
+          <label class="form-label">Telefone de emergência / pessoa de contato *</label>
+          <input v-model="form.emergency_phone" v-maska data-maska="(##) #####-####" required class="input-modern" />
+        </div>
       </div>
     </FormSection>
 
@@ -189,6 +195,13 @@
           <input v-model="form.neighborhood" type="text" required class="input-modern" />
         </div>
         <div class="md:col-span-2">
+          <label class="form-label">Prefeitura-bairro *</label>
+          <select v-model="form.prefeitura_bairro" required class="input-modern">
+            <option value="">Selecione...</option>
+            <option v-for="opt in PREFEITURAS_BAIRRO" :key="opt" :value="opt">{{ opt }}</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
           <label class="form-label">Complemento</label>
           <input v-model="form.complement" type="text" class="input-modern" />
         </div>
@@ -221,6 +234,7 @@ import {
   ESCOLARIDADES,
   IDENTIDADES_GENERO,
   ORIENTACOES_SEXUAIS,
+  PREFEITURAS_BAIRRO,
   RACAS,
   SEXOS,
   UFS,
@@ -267,10 +281,12 @@ function emptyForm() {
     receives_social_benefit: 'nao' as 'sim' | 'nao',
     social_benefit_name: '',
     phone: '',
+    emergency_phone: '',
     cep: '',
     address: '',
     number: '',
     neighborhood: '',
+    prefeitura_bairro: '',
     city: '',
     state: '',
     complement: '',
@@ -299,10 +315,12 @@ function fillFromUser(user: User | null) {
   form.receives_social_benefit = boolToSimNao(user.receives_social_benefit)
   form.social_benefit_name = user.social_benefit_name || ''
   form.phone = user.phone || ''
+  form.emergency_phone = user.emergency_phone || ''
   form.cep = user.cep || ''
   form.address = user.address || ''
   form.number = user.number || ''
   form.neighborhood = user.neighborhood || ''
+  form.prefeitura_bairro = user.prefeitura_bairro || ''
   form.city = user.city || ''
   form.state = user.state || ''
   form.complement = user.complement || ''
@@ -371,10 +389,12 @@ async function save() {
         receives_social_benefit: receivesBenefit,
         social_benefit_name: receivesBenefit ? form.social_benefit_name : null,
         phone: form.phone,
+        emergency_phone: form.emergency_phone,
         cep: form.cep,
         address: form.address,
         number: form.number,
         neighborhood: form.neighborhood,
+        prefeitura_bairro: form.prefeitura_bairro || null,
         city: form.city,
         state: form.state,
         complement: form.complement || null,

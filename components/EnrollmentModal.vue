@@ -11,26 +11,37 @@
         <form class="p-6 space-y-5" @submit.prevent="submit">
           <p class="text-sm text-muted">{{ courseTitle }}</p>
 
-          <div v-if="customFields.length" class="space-y-4">
+          <p class="text-sm text-primary bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+            Confira se seu cadastro está atualizado.
+            <a
+              href="/conta/perfil"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-semibold text-accent underline underline-offset-2 hover:no-underline"
+            >Editar cadastro</a>
+          </p>
+
+          <div v-if="visibleCustomFields.length" class="space-y-4">
             <p class="text-xs font-semibold text-muted uppercase tracking-wide">Informações adicionais</p>
-            <DynamicField
-              v-for="field in customFields.filter(f => f.type !== 'file')"
-              :key="field.id"
-              :field="field"
-              v-model="customValues[field.id]"
-            />
-            <div v-for="field in customFields.filter(f => f.type === 'file')" :key="field.id" class="space-y-2">
-              <label class="form-label">
-                {{ field.label }}
-                <span v-if="field.required" class="text-red-500">*</span>
-              </label>
-              <input
-                type="file"
-                class="input-modern file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:text-sm"
-                :required="field.required"
-                @change="onCustomFile(field.id, $event)"
+            <template v-for="field in visibleCustomFields" :key="field.id">
+              <DynamicField
+                v-if="field.type !== 'file'"
+                :field="field"
+                v-model="customValues[field.id]"
               />
-            </div>
+              <div v-else class="space-y-2">
+                <label class="form-label">
+                  {{ field.label }}
+                  <span v-if="field.required" class="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  class="input-modern file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:text-sm"
+                  :required="field.required"
+                  @change="onCustomFile(field.id, $event)"
+                />
+              </div>
+            </template>
           </div>
 
           <div v-if="documents.length" class="space-y-4">
@@ -43,11 +54,12 @@
               </label>
               <input
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
                 class="input-modern file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:text-sm"
                 :required="doc.required"
-                @change="onDocFile(doc.key, $event)"
+                @change="onDocFile(doc, $event)"
               />
+              <p class="text-xs text-muted">PDF, JPG ou PNG. Máximo {{ formatMaxUpload(doc.max_kb || 10240) }}.</p>
             </div>
           </div>
 
@@ -66,13 +78,14 @@
 </template>
 
 <script setup lang="ts">
+import { formatMaxUpload } from '~/utils/enrollmentDocuments'
+
 const props = defineProps<{
   courseId: number
   courseTitle: string
   customFields: any[]
-  documents: Array<{ key: string; label: string; required: boolean }>
+  documents: Array<{ key: string; label: string; required: boolean; max_kb?: number }>
   linkInscricao?: string | null
-  /** When true, stay on the current page after enrollment (e.g. online courses with videos). */
   stayOnPage?: boolean
 }>()
 
@@ -86,9 +99,30 @@ const customFiles = ref<Record<number, File>>({})
 const loading = ref(false)
 const error = ref('')
 
-function onDocFile(key: string, e: Event) {
+const visibleCustomFields = computed(() =>
+  props.customFields.filter(field => isFieldVisible(field)),
+)
+
+function isFieldVisible(field: any) {
+  if (!field.condition_field_id) return true
+  const answer = String(customValues.value[field.condition_field_id] || '').trim()
+  const expected = String(field.condition_value || '').trim()
+  if (field.condition_operator === 'equals') return answer === expected
+  if (field.condition_operator === 'not_equals') return answer !== '' && answer !== expected
+  return true
+}
+
+function onDocFile(doc: { key: string; label: string; max_kb?: number }, e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
-  if (file) docFiles.value[key] = file
+  if (!file) return
+  const maxKb = doc.max_kb || 10240
+  if (file.size > maxKb * 1024) {
+    error.value = `${doc.label} deve ter no máximo ${formatMaxUpload(maxKb)}.`
+    ;(e.target as HTMLInputElement).value = ''
+    return
+  }
+  error.value = ''
+  docFiles.value[doc.key] = file
 }
 
 function onCustomFile(id: number, e: Event) {
@@ -105,10 +139,12 @@ async function submit() {
     const formData = new FormData()
     formData.append('course_id', String(props.courseId))
 
-    const cfs = Object.entries(customValues.value).map(([id, value]) => ({
-      custom_field_id: Number(id),
-      value,
-    }))
+    const cfs = visibleCustomFields.value
+      .filter(field => field.type !== 'file')
+      .map(field => ({
+        custom_field_id: field.id,
+        value: customValues.value[field.id] || '',
+      }))
     cfs.forEach((cf, i) => {
       formData.append(`custom_fields[${i}][custom_field_id]`, String(cf.custom_field_id))
       formData.append(`custom_fields[${i}][value]`, cf.value || '')

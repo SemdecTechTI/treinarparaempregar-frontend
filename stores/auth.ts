@@ -9,10 +9,12 @@ export interface User {
   gender?: string
   allowed_modules?: string[]
   phone?: string
+  emergency_phone?: string
   cep?: string
   address?: string
   number?: string
   neighborhood?: string
+  prefeitura_bairro?: string
   city?: string
   state?: string
   complement?: string

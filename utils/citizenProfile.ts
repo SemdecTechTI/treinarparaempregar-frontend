@@ -47,6 +47,19 @@ export const DEFICIENCIAS = [
   'Outro',
 ] as const
 
+export const PREFEITURAS_BAIRRO = [
+  'Centro/Brotas',
+  'Barra/Pituba',
+  'Cabula/Tancredo Neves',
+  'Liberdade/São Caetano',
+  'Subúrbio/Ilhas',
+  'Cajazeiras',
+  'Itapuã',
+  'Cidade Baixa',
+  'Pau da Lima',
+  'Valéria',
+] as const
+
 export const UFS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
   'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',

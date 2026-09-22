@@ -6,8 +6,7 @@
     </AdminHeader>
 
     <p class="text-sm text-muted mb-4">
-      Estes campos aparecem na inscrição de <strong>todos os cursos</strong>.
-      Para campos de um curso específico, edite o curso em Cursos → Editar.
+      Campos globais podem aparecer em <strong>todos os cursos</strong> ou ficar na biblioteca para o curso escolher na edição.
     </p>
 
     <div v-if="loadError" class="text-red-600 text-sm mb-4">{{ loadError }}</div>
@@ -37,6 +36,37 @@
         <input v-model="form.required" type="checkbox" />
         Campo obrigatório na inscrição
       </label>
+      <label class="flex items-start gap-2 text-sm">
+        <input v-model="form.apply_to_all" type="checkbox" class="mt-0.5" />
+        <span>
+          Aplicar automaticamente em todos os cursos.
+          <span class="block text-xs text-muted">Desmarque para o campo ficar só na biblioteca. Cada curso escolhe se usa.</span>
+        </span>
+      </label>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <div class="sm:col-span-3">
+          <label class="form-label">Condicionar este campo</label>
+          <p class="text-xs text-muted mb-2">Opcional. Só aparece se outro campo global tiver determinada resposta.</p>
+        </div>
+        <div>
+          <label class="form-label">Campo</label>
+          <select v-model="form.condition_field_id" class="input-modern">
+            <option :value="null">Sem condição</option>
+            <option v-for="opt in conditionOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Quando</label>
+          <select v-model="form.condition_operator" class="input-modern" :disabled="!form.condition_field_id">
+            <option value="equals">for igual a</option>
+            <option value="not_equals">não for igual a</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Valor</label>
+          <input v-model="form.condition_value" type="text" class="input-modern" :disabled="!form.condition_field_id" placeholder="Não se aplica" />
+        </div>
+      </div>
       <div class="flex flex-wrap gap-3">
         <AdminActionButton :label="saving ? 'Salvando...' : 'Salvar'" variant="primary" size="md" :disabled="saving" @click="save" />
         <AdminActionButton label="Cancelar" variant="outline" size="md" @click="cancelForm" />
@@ -50,8 +80,8 @@
             <th class="px-4 py-3 text-left">Label</th>
             <th class="px-4 py-3 text-left">Tipo</th>
             <th class="px-4 py-3 text-left">Obrigatório</th>
+            <th class="px-4 py-3 text-left">Uso</th>
             <th class="px-4 py-3 text-left">Ordem</th>
-            <th class="px-4 py-3 text-left whitespace-nowrap">Cadastro</th>
             <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
@@ -62,11 +92,16 @@
             </td>
           </tr>
           <tr v-for="f in fields" :key="f.id" class="border-t">
-            <td class="px-4 py-3">{{ f.label }}</td>
+            <td class="px-4 py-3">
+              <p>{{ f.label }}</p>
+              <p v-if="f.condition_field_id" class="text-xs text-muted mt-1">
+                Condicionado a outro campo
+              </p>
+            </td>
             <td class="px-4 py-3">{{ typeLabel(f.type) }}</td>
             <td class="px-4 py-3">{{ f.required ? 'Sim' : 'Não' }}</td>
+            <td class="px-4 py-3">{{ f.apply_to_all ? 'Todos os cursos' : 'Biblioteca' }}</td>
             <td class="px-4 py-3">{{ f.sort_order ?? 0 }}</td>
-            <td class="px-4 py-3 whitespace-nowrap text-muted">{{ formatDateTime(f.created_at) }}</td>
             <td class="px-4 py-3">
               <AdminRowActionsMenu :items="[
                 { label: 'Editar', onClick: () => openEdit(f) },
@@ -83,8 +118,6 @@
 </template>
 
 <script setup lang="ts">
-import { formatDateTime } from '~/utils/datetime'
-
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'custom_fields' })
 
 const fields = ref<any[]>([])
@@ -101,7 +134,15 @@ const form = reactive({
   type: 'text',
   sort_order: 0,
   required: false,
+  apply_to_all: false,
+  condition_field_id: null as number | null,
+  condition_operator: 'not_equals',
+  condition_value: '',
 })
+
+const conditionOptions = computed(() =>
+  fields.value.filter(f => f.id !== editingId.value && f.type === 'select'),
+)
 
 function typeLabel(type: string) {
   const map: Record<string, string> = { text: 'Texto', select: 'Seleção', file: 'Arquivo' }
@@ -126,6 +167,10 @@ function openNew() {
   form.type = 'text'
   form.sort_order = 0
   form.required = false
+  form.apply_to_all = false
+  form.condition_field_id = null
+  form.condition_operator = 'not_equals'
+  form.condition_value = ''
   optionsText.value = ''
   showForm.value = true
 }
@@ -136,6 +181,10 @@ function openEdit(f: any) {
   form.type = f.type
   form.sort_order = f.sort_order ?? 0
   form.required = f.required ?? false
+  form.apply_to_all = f.apply_to_all ?? true
+  form.condition_field_id = f.condition_field_id ?? null
+  form.condition_operator = f.condition_operator || 'not_equals'
+  form.condition_value = f.condition_value || ''
   optionsText.value = (f.options || []).join(', ')
   showForm.value = true
 }
@@ -151,8 +200,12 @@ function buildBody() {
     type: form.type,
     sort_order: Number(form.sort_order) || 0,
     required: form.required,
+    apply_to_all: form.apply_to_all,
     global_only: true,
     course_id: null,
+    condition_field_id: form.condition_field_id || null,
+    condition_operator: form.condition_field_id ? form.condition_operator : null,
+    condition_value: form.condition_field_id ? form.condition_value : null,
   }
   if (form.type === 'select') {
     body.options = optionsText.value

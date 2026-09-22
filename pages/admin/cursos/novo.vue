@@ -9,6 +9,7 @@
         :document-types="documentTypes"
         v-model:selected-docs="selectedDocs"
         v-model:pending-custom-fields="pendingCustomFields"
+        v-model:pending-library-fields="pendingLibraryFields"
         :show-enrollment="true"
         :course-options="courseOptions"
         @partner-created="onPartnerCreated"
@@ -23,16 +24,18 @@
 </template>
 
 <script setup lang="ts">
-import type { CourseCustomFieldDraft } from '~/types/custom-field'
+import type { CourseCustomFieldDraft, LibraryFieldAttachment } from '~/types/custom-field'
+import { documentTypeMeta, type EnrollmentDocumentType } from '~/utils/enrollmentDocuments'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'courses' })
 
 const partners = ref<any[]>([])
 const tracks = ref<Array<{ id: number; name: string; slug: string }>>([])
 const allCourses = ref<any[]>([])
-const documentTypes = ref<Record<string, string>>({})
+const documentTypes = ref<Record<string, EnrollmentDocumentType | string>>({})
 const selectedDocs = ref<string[]>([])
 const pendingCustomFields = ref<CourseCustomFieldDraft[]>([])
+const pendingLibraryFields = ref<LibraryFieldAttachment[]>([])
 const dialog = useDialog()
 const saving = ref(false)
 
@@ -97,11 +100,15 @@ onMounted(async () => {
 async function save() {
   saving.value = true
   try {
-    const required_documents = selectedDocs.value.map(key => ({
-      key,
-      label: documentTypes.value[key],
-      required: true,
-    }))
+    const required_documents = selectedDocs.value.map((key) => {
+      const meta = documentTypeMeta(documentTypes.value[key], key)
+      return {
+        key,
+        label: meta.label,
+        required: meta.required_default,
+        max_kb: meta.max_kb,
+      }
+    })
     const body: Record<string, unknown> = {
       ...form,
       partner_id: Number(form.partner_id),
@@ -127,6 +134,20 @@ async function save() {
           sort_order: f.sort_order ?? 0,
           required: f.required ?? false,
           options: f.options,
+          condition_field_id: f.condition_field_id,
+          condition_operator: f.condition_operator,
+          condition_value: f.condition_value,
+        },
+      })
+    }
+    if (pendingLibraryFields.value.length) {
+      await useApi(`/admin/courses/${created.id}/library-fields`, {
+        method: 'PUT',
+        body: {
+          fields: pendingLibraryFields.value.map(item => ({
+            id: item.id,
+            sort_order: item.sort_order,
+          })),
         },
       })
     }
