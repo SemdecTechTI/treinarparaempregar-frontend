@@ -89,11 +89,11 @@ export const useAuthStore = defineStore('auth', () => {
     return fetchPromise
   }
 
-  async function login(email: string, password: string, origem?: string) {
+  async function login(email: string, password: string) {
     await ensureSanctumCsrf()
     const data = await useApi<{ user: User }>('/auth/login', {
       method: 'POST',
-      body: { email, password, origem },
+      body: { email, password },
     })
     user.value = data.user
     initialized.value = true

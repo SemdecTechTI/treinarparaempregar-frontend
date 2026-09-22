@@ -407,9 +407,12 @@ async function submit() {
       receives_social_benefit: receivesBenefit,
       social_benefit_name: receivesBenefit ? form.social_benefit_name : null,
       accepted_terms: true,
-      origem: route.query.origem as string || undefined,
     })
-    await navigateTo('/conta')
+    const origem = typeof route.query.origem === 'string' ? route.query.origem.trim() : ''
+    const coursePath = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(origem)
+      ? `/cursos/${origem}?inscrever=1`
+      : '/conta'
+    await navigateTo(coursePath)
   } catch (e: any) {
     const msg = e?.data?.message
     const errors = e?.data?.errors

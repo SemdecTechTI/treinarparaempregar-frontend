@@ -59,9 +59,13 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await auth.login(email.value, password.value, route.query.origem as string)
+    await auth.login(email.value, password.value)
     const redirect = safeInternalPath(route.query.redirect)
-    await navigateTo(redirect || homeForUser(!!auth.isStaff))
+    const origem = typeof route.query.origem === 'string' ? route.query.origem.trim() : ''
+    const coursePath = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(origem)
+      ? `/cursos/${origem}?inscrever=1`
+      : ''
+    await navigateTo(redirect || coursePath || homeForUser(!!auth.isStaff))
   } catch (e: any) {
     error.value = e?.data?.message || 'Email ou senha inválidos.'
   } finally {

@@ -367,6 +367,16 @@ const canEnroll = computed(() => {
   return true
 })
 
+watch(
+  [() => auth.isLoggedIn, canEnroll, () => route.query.inscrever],
+  ([logged, enroll, inscrever]) => {
+    if (logged && enroll && inscrever && !userEnrollment.value) {
+      showEnrollmentModal.value = true
+    }
+  },
+  { immediate: true },
+)
+
 const isReserva = computed(() => course.value?.enrollment_status === 'reserva')
 
 const enrollmentOpen = computed(() =>
