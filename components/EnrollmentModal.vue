@@ -131,8 +131,22 @@ function onCustomFile(id: number, e: Event) {
 }
 
 async function submit() {
-  loading.value = true
   error.value = ''
+
+  for (const field of visibleCustomFields.value) {
+    if (field.type === 'file' && field.required && !customFiles.value[field.id]) {
+      error.value = `Campo obrigatório: ${field.label}`
+      return
+    }
+  }
+  for (const doc of props.documents) {
+    if (doc.required && !docFiles.value[doc.key]) {
+      error.value = `Documento obrigatório: ${doc.label}`
+      return
+    }
+  }
+
+  loading.value = true
   try {
     await ensureSanctumCsrf()
 

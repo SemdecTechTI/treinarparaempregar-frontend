@@ -271,5 +271,5 @@ const catalog = computed(() => resolveDocumentTypes(props.documentTypes))
 
 watch(selectedDocs, (keys) => {
   props.form.requires_documents = keys.length > 0
-}, { deep: true })
+}, { deep: true, immediate: true })
 </script>

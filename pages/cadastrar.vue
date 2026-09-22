@@ -386,12 +386,17 @@ async function submit() {
     error.value = 'Informe o nome do benefício social.'
     return
   }
+  if (!acceptedTerms.value) {
+    error.value = 'É necessário aceitar os termos de uso.'
+    return
+  }
 
   loading.value = true
   error.value = ''
   try {
     const hasDisability = form.has_disability === 'sim'
     const receivesBenefit = form.receives_social_benefit === 'sim'
+
     await auth.register({
       ...form,
       social_name: form.social_name || null,
@@ -401,6 +406,7 @@ async function submit() {
       registered_cadunico: form.registered_cadunico === 'sim',
       receives_social_benefit: receivesBenefit,
       social_benefit_name: receivesBenefit ? form.social_benefit_name : null,
+      accepted_terms: true,
       origem: route.query.origem as string || undefined,
     })
     await navigateTo('/conta')

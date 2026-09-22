@@ -212,8 +212,8 @@ async function save() {
       enrollment_end: form.enrollment_end || null,
       enrollment_closed: form.enrollment_closed,
       allow_simultaneous_enrollment: form.allow_simultaneous_enrollment,
-      requires_documents: form.requires_documents,
-      required_documents: form.requires_documents ? required_documents : [],
+      requires_documents: selectedDocs.value.length > 0,
+      required_documents,
       keep_export_link: form.keep_export_link,
     }
 

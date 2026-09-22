@@ -120,7 +120,8 @@ async function save() {
       enrollment_start: form.enrollment_start || null,
       enrollment_end: form.enrollment_end || null,
       internal_title: form.internal_title || null,
-      required_documents: form.requires_documents ? required_documents : [],
+      requires_documents: selectedDocs.value.length > 0,
+      required_documents,
       link_course_id: form.link_course_id ? Number(form.link_course_id) : null,
     }
     const created = await useApi<any>('/admin/courses', { method: 'POST', body })
