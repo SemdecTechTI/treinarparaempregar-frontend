@@ -54,7 +54,7 @@
                 <p class="text-xs text-muted truncate">{{ doc.original_name || 'Arquivo enviado' }}</p>
               </div>
               <a
-                :href="documentUrl(doc.id)"
+                :href="documentUrl(doc)"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-accent text-sm font-medium hover:underline shrink-0"
@@ -74,7 +74,7 @@
               <dd>
                 <a
                   v-if="isFileField(field)"
-                  :href="customFieldFileUrl(field.id)"
+                  :href="customFieldFileUrl(field)"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="text-accent font-medium hover:underline"
@@ -152,6 +152,7 @@
 
 <script setup lang="ts">
 import { formatDate, formatDateTime } from '~/utils/datetime'
+import { resolveMediaUrl } from '~/utils/media'
 
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'enrollments' })
 
@@ -186,8 +187,9 @@ function display(value: unknown) {
 }
 
 function isFileField(field: any) {
+  const value = String(field?.value || '')
   return field?.custom_field?.type === 'file'
-    || String(field?.value || '').startsWith('enrollment-custom-fields/')
+    || value.includes('enrollment-custom-fields/')
 }
 
 function fileLabel(value?: string) {
@@ -201,12 +203,16 @@ function apiPath(path: string) {
   return `${base}${path}`
 }
 
-function documentUrl(documentId: number) {
-  return apiPath(`/admin/enrollments/${id}/documents/${documentId}`)
+function documentUrl(doc: { id: number; path?: string; url?: string }) {
+  if (doc.url) return doc.url
+  if (doc.path && String(doc.path).includes('uploads/')) return resolveMediaUrl(doc.path)
+  return apiPath(`/admin/enrollments/${id}/documents/${doc.id}`)
 }
 
-function customFieldFileUrl(valueId: number) {
-  return apiPath(`/admin/enrollments/${id}/custom-field-files/${valueId}`)
+function customFieldFileUrl(field: { id: number; value?: string }) {
+  const value = String(field?.value || '')
+  if (value.includes('uploads/')) return resolveMediaUrl(value)
+  return apiPath(`/admin/enrollments/${id}/custom-field-files/${field.id}`)
 }
 
 async function load() {
