@@ -35,7 +35,7 @@
           </div>
           <div>
             <dt class="text-muted">Emissão do RG</dt>
-            <dd>{{ formatDate(p('rg_issue_date')) }} — {{ p('rg_issuer') }}</dd>
+            <dd>{{ formatDate(p('rg_issue_date')) }}. {{ p('rg_issuer') }}</dd>
           </div>
           <div>
             <dt class="text-muted">Nascimento</dt>
@@ -77,7 +77,7 @@
             <dt class="text-muted">Deficiência</dt>
             <dd>
               <template v-if="boolVal('has_disability')">
-                Sim — {{ (citizen.disability_types || citizen.profile?.disability_types || []).join(', ') || '—' }}
+                Sim. {{ (citizen.disability_types || citizen.profile?.disability_types || []).join(', ') || '—' }}
               </template>
               <template v-else>Não</template>
             </dd>
@@ -90,14 +90,14 @@
             <dt class="text-muted">Benefício social</dt>
             <dd>
               <template v-if="boolVal('receives_social_benefit')">
-                Sim — {{ p('social_benefit_name') }}
+                Sim. {{ p('social_benefit_name') }}
               </template>
               <template v-else>Não</template>
             </dd>
           </div>
           <div>
             <dt class="text-muted">Cadastro na plataforma</dt>
-            <dd>{{ formatDate(citizen.created_at) }}</dd>
+            <dd>{{ formatDateTime(citizen.created_at) }}</dd>
           </div>
           <div class="sm:col-span-2">
             <dt class="text-muted">Endereço</dt>
@@ -128,7 +128,7 @@
                 <p class="font-medium text-primary">{{ e.enrollable?.title || '—' }}</p>
                 <p v-if="e.enrollable?.internal_title" class="text-xs text-muted">{{ e.enrollable.internal_title }}</p>
               </td>
-              <td class="px-4 py-3">{{ formatDate(e.created_at) }}</td>
+              <td class="px-4 py-3">{{ formatDateTime(e.created_at) }}</td>
               <td class="px-4 py-3">
                 <EnrollmentStatusBadge :status="e.status" />
               </td>
@@ -152,6 +152,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDate, formatDateTime } from '~/utils/datetime'
+
 definePageMeta({ layout: 'admin', middleware: 'admin', adminModule: 'citizens' })
 
 const route = useRoute()
@@ -185,13 +187,6 @@ const fullAddress = computed(() => {
   ].filter(Boolean)
   return parts.length ? parts.join(', ') : '—'
 })
-
-function formatDate(d: string | null | undefined) {
-  if (!d || d === '—') return '—'
-  const date = new Date(d)
-  if (Number.isNaN(date.getTime())) return d
-  return date.toLocaleDateString('pt-BR')
-}
 
 onMounted(async () => {
   try {
