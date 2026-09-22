@@ -9,14 +9,19 @@
         :alt="label || 'Preview'"
         class="h-24 w-24 object-contain rounded-lg border border-slate-200 bg-white p-1"
       />
-      <button
-        type="button"
-        class="text-xs text-red-600 hover:underline mt-1"
-        :disabled="uploading"
-        @click="clear"
-      >
-        Remover imagem
-      </button>
+      <div class="min-w-0">
+        <p v-if="originalName" class="text-xs text-muted truncate max-w-[16rem]" :title="originalName">
+          {{ originalName }}
+        </p>
+        <button
+          type="button"
+          class="text-xs text-red-600 hover:underline mt-1"
+          :disabled="uploading"
+          @click="clear"
+        >
+          Remover imagem
+        </button>
+      </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
@@ -33,7 +38,7 @@
         />
         {{ uploading ? 'Enviando...' : modelValue ? 'Trocar imagem' : 'Selecionar imagem' }}
       </label>
-      <span class="text-xs text-muted">JPG, PNG ou WebP — até 5 MB</span>
+      <span class="text-xs text-muted">JPG, PNG ou WebP, até 5 MB</span>
     </div>
 
     <p v-if="error" class="text-sm text-red-600 mt-2">{{ error }}</p>
@@ -56,6 +61,7 @@ const modelValue = defineModel<string>({ default: '' })
 
 const uploading = ref(false)
 const error = ref('')
+const originalName = ref('')
 
 async function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement
@@ -76,8 +82,9 @@ async function onFileChange(event: Event) {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('context', props.context)
-    const data = await useApiForm<{ url: string }>('/admin/media', formData)
+    const data = await useApiForm<{ url: string; original_name?: string }>('/admin/media', formData)
     modelValue.value = data.url
+    originalName.value = data.original_name || file.name
   } catch (e: any) {
     error.value = e?.data?.message || 'Não foi possível enviar a imagem.'
   } finally {
@@ -87,6 +94,7 @@ async function onFileChange(event: Event) {
 
 function clear() {
   modelValue.value = ''
+  originalName.value = ''
   error.value = ''
 }
 </script>

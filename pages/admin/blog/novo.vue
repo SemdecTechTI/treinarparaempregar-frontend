@@ -20,14 +20,14 @@ const saving = ref(false)
 const error = ref('')
 
 const form = reactive({
-  titulo: '',
+  title: '',
   excerpt: '',
   content: '',
   cover_image: '',
   status: 'draft',
   published_at: '',
   featured: false,
-  ordem: 0,
+  sort_order: 0,
   meta_title: '',
   meta_description: '',
   og_image: '',
@@ -46,7 +46,7 @@ async function save() {
       method: 'POST',
       body: {
         ...form,
-        ordem: Number(form.ordem) || 0,
+        sort_order: Number(form.sort_order) || 0,
         published_at: form.published_at || null,
         canonical_url: form.canonical_url || null,
       },

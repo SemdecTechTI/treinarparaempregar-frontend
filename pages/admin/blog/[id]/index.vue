@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AdminHeader :title="post?.titulo || 'Editar artigo'" />
+    <AdminHeader :title="post?.title || 'Editar artigo'" />
     <div v-if="loading" class="text-muted">Carregando...</div>
     <p v-else-if="error && !post" class="text-red-600 text-sm">{{ error }}</p>
 
@@ -39,14 +39,14 @@ const message = ref('')
 const error = ref('')
 
 const form = reactive({
-  titulo: '',
+  title: '',
   excerpt: '',
   content: '',
   cover_image: '',
   status: 'draft',
   published_at: '',
   featured: false,
-  ordem: 0,
+  sort_order: 0,
   meta_title: '',
   meta_description: '',
   og_image: '',
@@ -63,14 +63,14 @@ function toLocalInput(iso: string | null) {
 onMounted(async () => {
   try {
     post.value = await useApi(`/admin/blog-posts/${id}`)
-    form.titulo = post.value.titulo
+    form.title = post.value.title || ''
     form.excerpt = post.value.excerpt || ''
     form.content = post.value.content || ''
     form.cover_image = post.value.cover_image || ''
     form.status = post.value.status || 'draft'
     form.published_at = toLocalInput(post.value.published_at)
     form.featured = post.value.featured ?? false
-    form.ordem = post.value.ordem ?? 0
+    form.sort_order = post.value.sort_order ?? 0
     form.meta_title = post.value.meta_title || ''
     form.meta_description = post.value.meta_description || ''
     form.og_image = post.value.og_image || ''
@@ -99,7 +99,7 @@ async function save() {
       method: 'PUT',
       body: {
         ...form,
-        ordem: Number(form.ordem) || 0,
+        sort_order: Number(form.sort_order) || 0,
         published_at: form.published_at || null,
         canonical_url: form.canonical_url || null,
       },
@@ -113,7 +113,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!await dialog.confirm(`Remover o artigo "${post.value?.titulo}"?`, {
+  if (!await dialog.confirm(`Remover o artigo "${post.value?.title}"?`, {
     title: 'Remover artigo',
     confirmText: 'Remover',
     danger: true,

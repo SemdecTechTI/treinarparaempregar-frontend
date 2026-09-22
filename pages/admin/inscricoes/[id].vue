@@ -79,7 +79,7 @@
                   rel="noopener noreferrer"
                   class="text-accent font-medium hover:underline"
                 >
-                  {{ fileLabel(field.value) }}
+                  {{ fileLabel(field) }}
                 </a>
                 <span v-else>{{ display(field.value) }}</span>
               </dd>
@@ -192,7 +192,9 @@ function isFileField(field: any) {
     || value.includes('enrollment-custom-fields/')
 }
 
-function fileLabel(value?: string) {
+function fileLabel(field: { original_name?: string; value?: string }) {
+  if (field?.original_name) return field.original_name
+  const value = String(field?.value || '')
   if (!value) return 'Abrir arquivo'
   const name = value.split('/').pop()
   return name || 'Abrir arquivo'
