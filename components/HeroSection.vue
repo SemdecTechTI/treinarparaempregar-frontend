@@ -61,7 +61,7 @@
         <div class="hidden lg:grid grid-cols-2 gap-4">
           <div class="glass-dark rounded-2xl p-6 text-white animate-float" style="animation-delay: 0s">
             <p class="text-4xl font-bold text-accent">{{ stats.courses }}</p>
-            <p class="text-sm text-white/70 mt-1">Cursos disponíveis</p>
+            <p class="text-sm text-white/70 mt-1">Cursos cadastrados</p>
           </div>
           <div class="glass-dark rounded-2xl p-6 text-white animate-float-delayed mt-8">
             <p class="text-4xl font-bold text-h4">{{ trackCount }}</p>

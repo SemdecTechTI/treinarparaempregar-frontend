@@ -4,7 +4,7 @@
       <div class="mb-8">
         <p class="text-accent font-semibold text-sm uppercase tracking-widest mb-2">Catálogo</p>
         <h2 class="section-title">
-          Cursos disponíveis
+          Cursos
         </h2>
         <p class="text-muted mt-2">
           <span v-if="!loading">{{ totalCount }} curso(s) encontrado(s)</span>

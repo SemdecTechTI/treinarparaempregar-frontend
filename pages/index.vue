@@ -57,18 +57,16 @@ import { trackPresentation } from '~/utils/tracks'
 
 const { data: homeTracks } = await usePublicTracks()
 
-const { data: openCourses } = await useAsyncData('home-open-courses', async () => {
+const { data: homeCourses } = await useAsyncData('home-course-count', async () => {
   try {
-    return await useApiPublic<Array<{ enrollment_status?: string }>>('/cursos?inscricao=abertas')
+    return await useApiPublic<unknown[]>('/cursos')
   } catch {
     return []
   }
 })
 
 const tracks = computed(() => (homeTracks.value ?? []).map((track, index) => trackPresentation(track, index)))
-const courseCount = computed(() =>
-  (openCourses.value ?? []).filter((course) => course.enrollment_status !== 'encerrada').length,
-)
+const courseCount = computed(() => homeCourses.value?.length ?? 0)
 const trackCount = computed(() => tracks.value.length)
 
 usePageSeo({
