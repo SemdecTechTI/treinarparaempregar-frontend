@@ -36,10 +36,9 @@
         <div>
           <h4 class="font-semibold mb-4 text-h4">Trilhas</h4>
           <ul class="space-y-2.5 text-sm text-gray-300">
-            <li><NuxtLink to="/trilhas/base" class="hover:text-white transition-colors">Base</NuxtLink></li>
-            <li><NuxtLink to="/trilhas/saude" class="hover:text-white transition-colors">Carreiras (Saúde)</NuxtLink></li>
-            <li><NuxtLink to="/trilhas/servicos" class="hover:text-white transition-colors">Soft Skills (Serviços)</NuxtLink></li>
-            <li><NuxtLink to="/trilhas/tecnicos" class="hover:text-white transition-colors">Técnicos (Construção Civil)</NuxtLink></li>
+            <li v-for="track in trilhas" :key="track.to">
+              <NuxtLink :to="track.to" class="hover:text-white transition-colors">{{ track.label }}</NuxtLink>
+            </li>
           </ul>
         </div>
 
@@ -60,6 +59,16 @@
 </template>
 
 <script setup lang="ts">
+import { trackPresentation } from '~/utils/tracks'
+
+const { data: trackOptions } = await usePublicTracks()
+const trilhas = computed(() =>
+  (trackOptions.value ?? []).map((track, index) => {
+    const card = trackPresentation(track, index)
+    return { to: card.to, label: card.title }
+  }),
+)
+
 const email = ref('')
 const submitting = ref(false)
 const feedback = ref('')

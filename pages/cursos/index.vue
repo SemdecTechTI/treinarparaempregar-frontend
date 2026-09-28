@@ -14,7 +14,7 @@
 <script setup lang="ts">
 usePageSeo({
   title: 'Cursos disponíveis',
-  description: 'Catálogo de cursos presenciais e online gratuitos do Treinar para Empregar. Filtre por trilha e modalidade.',
+  description: 'Catálogo de cursos presenciais e online gratuitos do Treinar para Empregar. Filtre por trilha, modalidade e status da inscrição.',
   path: '/cursos',
 })
 </script>

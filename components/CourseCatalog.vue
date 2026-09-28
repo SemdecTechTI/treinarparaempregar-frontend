@@ -19,7 +19,7 @@
     </RevealOnScroll>
 
     <RevealOnScroll :delay="showHeader ? 100 : 0">
-      <div class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 lg:items-start">
+      <div class="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 lg:items-start">
         <div>
           <p class="text-xs font-medium text-muted uppercase tracking-wide mb-3">Trilha</p>
           <FilterPills v-model="filters.trilha" :options="trilhaOptions" />
@@ -27,6 +27,10 @@
         <div>
           <p class="text-xs font-medium text-muted uppercase tracking-wide mb-3">Modalidade</p>
           <FilterPills v-model="filters.modalidade" :options="modalidadeOptions" />
+        </div>
+        <div>
+          <p class="text-xs font-medium text-muted uppercase tracking-wide mb-3">Status</p>
+          <FilterPills v-model="filters.inscricao" :options="inscricaoOptions" />
         </div>
       </div>
     </RevealOnScroll>
@@ -87,13 +91,13 @@
     </div>
 
     <div v-if="showViewAllLink" class="mt-10 text-center">
-      <NuxtLink to="/cursos" class="btn btn-outline">Ver todos os cursos</NuxtLink>
+      <NuxtLink :to="viewAllTo" class="btn btn-outline">Ver todos os cursos</NuxtLink>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { loadTracks } from '~/utils/tracks'
+import { loadTracks, trackPresentation } from '~/utils/tracks'
 
 const props = withDefaults(
   defineProps<{
@@ -108,6 +112,8 @@ const props = withDefaults(
     syncQuery?: boolean
     initialTrilha?: string
     initialModalidade?: string
+    /** '' = todas, abertas ou encerradas */
+    initialInscricao?: '' | 'abertas' | 'encerradas'
   }>(),
   {
     perPage: 0,
@@ -117,6 +123,7 @@ const props = withDefaults(
     showViewAllLink: false,
     embedded: false,
     syncQuery: false,
+    initialInscricao: '',
   },
 )
 
@@ -126,9 +133,18 @@ const auth = useAuthStore()
 
 const currentPage = ref(1)
 
+function initialInscricaoFromRoute(): '' | 'abertas' | 'encerradas' {
+  if (!props.syncQuery) return props.initialInscricao
+  const value = route.query.inscricao
+  if (value === 'todas') return ''
+  if (value === 'abertas' || value === 'encerradas') return value
+  return props.initialInscricao
+}
+
 const filters = reactive({
   trilha: props.initialTrilha || (props.syncQuery ? (route.query.trilha as string) : '') || '',
   modalidade: props.initialModalidade || (props.syncQuery ? (route.query.modalidade as string) : '') || '',
+  inscricao: initialInscricaoFromRoute(),
 })
 
 const trilhaOptions = ref([
@@ -142,21 +158,22 @@ const modalidadeOptions = [
   { label: 'EAD', value: 'ead', icon: '🌐' },
 ]
 
-const TRACK_ICONS: Record<string, string> = {
-  base: '📚',
-  saude: '🏥',
-  servicos: '💼',
-  tecnicos: '🔧',
-  jovem: '🌟',
-}
+const inscricaoOptions = [
+  { label: 'Todos', value: '', icon: '✨' },
+  { label: 'Inscrições abertas', value: 'abertas', icon: '✅' },
+  { label: 'Inscrições encerradas', value: 'encerradas', icon: '🔒' },
+]
 
 function catalogPath() {
   const params = new URLSearchParams()
   if (filters.trilha) params.set('trilha', filters.trilha)
   if (filters.modalidade) params.set('modalidade', filters.modalidade)
+  if (filters.inscricao) params.set('inscricao', filters.inscricao)
   const qs = params.toString()
   return `/cursos${qs ? `?${qs}` : ''}`
 }
+
+const viewAllTo = computed(() => catalogPath())
 
 async function fetchCoursesList() {
   const path = catalogPath()
@@ -172,11 +189,20 @@ async function fetchCoursesList() {
 }
 
 const { data: coursesData, pending: loading, refresh } = await useAsyncData(
-  () => `public-courses:${filters.trilha}:${filters.modalidade}`,
+  () => `public-courses:${filters.trilha}:${filters.modalidade}:${filters.inscricao}`,
   fetchCoursesList,
 )
 
-const courses = computed(() => coursesData.value ?? [])
+const courses = computed(() => {
+  const list = coursesData.value ?? []
+  if (filters.inscricao === 'abertas') {
+    return list.filter((course) => course.enrollment_status !== 'encerrada')
+  }
+  if (filters.inscricao === 'encerradas') {
+    return list.filter((course) => course.enrollment_status === 'encerrada')
+  }
+  return list
+})
 
 const totalCount = computed(() => courses.value.length)
 
@@ -222,11 +248,10 @@ onMounted(async () => {
     const tracks = await loadTracks()
     trilhaOptions.value = [
       { label: 'Todas', value: '', icon: '✨' },
-      ...tracks.map(t => ({
-        label: t.name.replace(/\s*\(.*\)\s*$/, '') || t.name,
-        value: t.slug,
-        icon: TRACK_ICONS[t.slug] || '📘',
-      })),
+      ...tracks.map((t, index) => {
+        const card = trackPresentation(t, index)
+        return { label: card.title, value: t.slug, icon: card.icon }
+      }),
     ]
   } catch {
     // fallback já em loadTracks
@@ -239,6 +264,7 @@ onMounted(async () => {
 function clearFilters() {
   filters.trilha = ''
   filters.modalidade = ''
+  filters.inscricao = ''
 }
 
 function goToPage(page: number) {
@@ -253,6 +279,8 @@ function syncQueryToRoute() {
   const query: Record<string, string> = {}
   if (filters.trilha) query.trilha = filters.trilha
   if (filters.modalidade) query.modalidade = filters.modalidade
+  if (filters.inscricao) query.inscricao = filters.inscricao
+  else if (props.initialInscricao) query.inscricao = 'todas'
   if (currentPage.value > 1) query.page = String(currentPage.value)
   router.replace({ query })
 }

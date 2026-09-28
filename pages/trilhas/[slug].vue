@@ -4,8 +4,8 @@
       <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-dark" />
       <div class="absolute top-10 right-10 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
       <div class="container mx-auto px-4 relative z-10">
-        <h1 class="text-white !text-3xl lg:!text-5xl font-semibold">{{ trilhaInfo.title }}</h1>
-        <p class="text-white/75 mt-3 max-w-xl">{{ trilhaInfo.description }}</p>
+        <h1 class="text-white !text-3xl lg:!text-5xl font-semibold">{{ info.title }}</h1>
+        <p class="text-white/75 mt-3 max-w-xl">{{ info.description }}</p>
       </div>
     </section>
     <section class="container mx-auto px-4 pb-16">
@@ -19,31 +19,44 @@
 </template>
 
 <script setup lang="ts">
+import { trackPresentation } from '~/utils/tracks'
+
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 
-const trilhaMap: Record<string, { title: string; description: string; trilha: string }> = {
-  base: { title: 'SIMM Prepara (Base)', description: 'Cursos de base e preparação para o mercado de trabalho.', trilha: 'base' },
-  saude: { title: 'Carreiras — Saúde', description: 'Qualificação para o setor de saúde.', trilha: 'saude' },
-  servicos: { title: 'Soft Skills — Serviços', description: 'Competências para o setor de serviços.', trilha: 'servicos' },
-  tecnicos: { title: 'Técnicos — Construção Civil', description: 'Cursos técnicos para construção civil.', trilha: 'tecnicos' },
-  softskills: { title: 'Soft Skills — Serviços', description: 'Competências para o setor de serviços.', trilha: 'servicos' },
-  carreiras: { title: 'Carreiras — Saúde', description: 'Qualificação para o setor de saúde.', trilha: 'saude' },
+const legacyTrackSlug: Record<string, string> = {
+  softskills: 'servicos',
+  carreiras: 'saude',
 }
 
-const trilhaInfo = computed(() => trilhaMap[slug.value] || { title: 'Trilha', description: 'Cursos desta trilha de formação.', trilha: slug.value })
+const trackSlug = computed(() => legacyTrackSlug[slug.value] || slug.value)
 
-usePageSeo({
-  title: trilhaInfo.value.title,
-  description: trilhaInfo.value.description,
-  path: `/trilhas/${slug.value}`,
+const { data: trackOptions } = await usePublicTracks()
+
+const info = computed(() => {
+  const tracks = trackOptions.value ?? []
+  const index = tracks.findIndex(track => track.slug === trackSlug.value)
+  const track = index >= 0 ? tracks[index] : null
+  if (!track) {
+    return { title: 'Trilha', description: 'Cursos desta trilha de formação.' }
+  }
+  const card = trackPresentation(track, index)
+  return { title: card.title, description: card.description }
 })
 
+watch(info, (value) => {
+  usePageSeo({
+    title: value.title,
+    description: value.description,
+    path: `/trilhas/${slug.value}`,
+  })
+}, { immediate: true })
+
 const { data: coursesData, pending: loading } = await useAsyncData(
-  () => `trilha-courses-${trilhaInfo.value.trilha}`,
+  () => `trilha-courses-${trackSlug.value}`,
   async () => {
     try {
-      return await useApiPublic<any[]>(`/cursos?trilha=${trilhaInfo.value.trilha}`)
+      return await useApiPublic<any[]>(`/cursos?trilha=${trackSlug.value}`)
     } catch {
       return []
     }

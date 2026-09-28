@@ -9,10 +9,6 @@ const STATIC_PATHS = [
   '/parceiros',
   '/cadastrar',
   '/cadastre-sua-vaga',
-  '/trilhas/base',
-  '/trilhas/saude',
-  '/trilhas/servicos',
-  '/trilhas/tecnicos',
 ]
 
 export default defineEventHandler(async (event) => {
@@ -22,6 +18,7 @@ export default defineEventHandler(async (event) => {
 
   let blogPaths: string[] = []
   let coursePaths: string[] = []
+  let trackPaths: string[] = []
 
   try {
     const posts = await $fetch<Array<{ slug: string }>>(`${apiOrigin}/api/blog`, {
@@ -41,7 +38,16 @@ export default defineEventHandler(async (event) => {
     // idem
   }
 
-  const paths = [...STATIC_PATHS, ...coursePaths, ...blogPaths]
+  try {
+    const tracks = await $fetch<Array<{ slug: string }>>(`${apiOrigin}/api/tracks`, {
+      headers: { Accept: 'application/json' },
+    })
+    trackPaths = (tracks || []).map((track) => `/trilhas/${track.slug}`)
+  } catch {
+    trackPaths = ['/trilhas/base', '/trilhas/saude', '/trilhas/servicos', '/trilhas/tecnicos']
+  }
+
+  const paths = [...STATIC_PATHS, ...trackPaths, ...coursePaths, ...blogPaths]
   const urls = paths.map((path) => {
     const loc = absoluteUrl(path, siteUrl)
     return `<url><loc>${loc}</loc><changefreq>weekly</changefreq></url>`

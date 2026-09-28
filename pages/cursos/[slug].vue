@@ -443,7 +443,7 @@ const sidebarItems = computed(() => {
     items.push({ icon: '👥', label: 'Vagas totais', value: label })
   }
 
-  if (!course.value.hide_available_vacancies) {
+  if (!course.value.hide_available_vacancies && course.value.enrollment_status !== 'encerrada') {
     if (isReserva.value) {
       items.push({ icon: '⚠️', label: 'Vagas disponíveis', value: 'Vagas de reserva', highlight: true })
     } else {

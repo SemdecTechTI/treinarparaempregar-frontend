@@ -27,7 +27,7 @@
               Trilhas
               <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div class="absolute top-full left-0 mt-2 w-52 bg-white rounded-xl py-2 shadow-card border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+            <div class="absolute top-full left-0 mt-2 w-64 max-h-[70vh] overflow-y-auto bg-white rounded-xl py-2 shadow-card border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
               <NuxtLink
                 v-for="t in trilhas"
                 :key="t.to"
@@ -195,6 +195,8 @@
 </template>
 
 <script setup lang="ts">
+import { trackPresentation } from '~/utils/tracks'
+
 const auth = useAuthStore()
 const route = useRoute()
 const mobileOpen = ref(false)
@@ -238,10 +240,12 @@ const navLinks = [
   { to: '/blog', label: 'Blog' },
 ]
 
-const trilhas = [
-  { to: '/trilhas/base', label: 'SIMM Prepara', icon: '📚' },
-  { to: '/trilhas/saude', label: 'Saúde', icon: '🏥' },
-  { to: '/trilhas/servicos', label: 'Serviços', icon: '💼' },
-  { to: '/trilhas/tecnicos', label: 'Construção Civil', icon: '🔧' },
-]
+const { data: trackOptions } = await usePublicTracks()
+
+const trilhas = computed(() =>
+  (trackOptions.value ?? []).map((track, index) => {
+    const card = trackPresentation(track, index)
+    return { to: card.to, label: card.title, icon: card.icon }
+  }),
+)
 </script>
