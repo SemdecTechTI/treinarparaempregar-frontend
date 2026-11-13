@@ -516,6 +516,7 @@ usePageSeo({
   title: 'Programa Vida Nova',
   description: 'Vida Nova: a estratégia da Prefeitura de Salvador para a superação da pobreza. Cadastre vagas e faça parte da inclusão produtiva das famílias participantes.',
   path: '/programa/vida-nova',
+  image: '/images/vida-nova/og-vida-nova.jpg',
 })
 
 const MANIFESTO = 'Uma estratégia real de *superação da pobreza* e de acolhimento das *famílias mais vulneráveis* da cidade.'
