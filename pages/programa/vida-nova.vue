@@ -37,7 +37,7 @@
           </p>
         </div>
 
-        <div class="relative h-[23rem] sm:h-[30rem] lg:h-[min(37rem,calc(100svh-10rem))]" aria-hidden="true">
+        <div class="vn2-hero-art relative h-[23rem] sm:h-[30rem] lg:h-[min(37rem,calc(100svh-10rem))]" aria-hidden="true">
           <VidaNovaSmile class="vn2-draw absolute left-1/2 top-[7%] w-[94%] -translate-x-1/2 text-vn-pink" />
           <img
             src="/images/vida-nova/pessoa-2.webp"
@@ -65,7 +65,7 @@
               <span><strong>Vaga cadastrada</strong><small>Enviada para análise</small></span>
             </div>
           </div>
-          <div class="vn2-pop absolute right-[2%] top-[2%] z-20 hidden sm:block" style="--d: 1500ms">
+          <div class="vn2-pop absolute right-[2%] lg:right-[7%] top-[2%] z-20 hidden sm:block" style="--d: 1500ms">
             <div class="vn2-bob vn2-ui-card">
               <span class="vn2-ui-icon bg-vn-yellow text-vn-navy">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>
@@ -1001,6 +1001,25 @@ onMounted(() => {
 
 .vn2-person {
   animation: vn2-person 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* A foto original corta o braço na borda direita: encosta a arte no canto da janela */
+@media (min-width: 1024px) {
+  .vn2-hero-art {
+    left: calc((100vw - 1024px) / 2 + 1rem);
+  }
+}
+
+@media (min-width: 1280px) {
+  .vn2-hero-art {
+    left: calc((100vw - 1280px) / 2 + 1rem);
+  }
+}
+
+@media (min-width: 1536px) {
+  .vn2-hero-art {
+    left: calc((100vw - 1536px) / 2 + 1rem);
+  }
 }
 
 .vn2-draw :deep(path) {
