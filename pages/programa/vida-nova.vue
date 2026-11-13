@@ -1,5 +1,6 @@
 <template>
-  <div ref="rootEl" class="vn2 overflow-x-clip bg-white">
+  <!-- -mb-16 anula o mt-16 do TheFooter para o CTA amarelo encostar no rodapé -->
+  <div ref="rootEl" class="vn2 overflow-x-clip bg-white -mb-16">
     <div ref="progressBar" class="vn2-progress" aria-hidden="true" />
 
     <div class="relative">
