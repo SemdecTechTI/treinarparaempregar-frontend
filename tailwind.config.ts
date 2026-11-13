@@ -24,6 +24,12 @@ export default {
         h6: '#bf3364',
         surface: '#f4f7fb',
         prefeitura: '#00519a',
+        vn: {
+          yellow: '#fddd2a',
+          blue: '#003091',
+          pink: '#eb008c',
+          navy: '#142541',
+        },
       },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],
